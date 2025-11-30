@@ -56,9 +56,33 @@
             flex: 1;
             border: 1px solid #ccc;
             background: #fff;
-            padding: 5px;
             height: 600px;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        /* コンテンツエリア（スクロール対象） */
+        #comment,
+        #freeStar,
+        #freeOther,
+        #paidGift {
+            flex: 1;
             overflow-y: auto;
+            padding: 5px;
+        }
+
+        .sticky-header {
+            background: #fff;
+            z-index: 10;
+            padding: 5px;
+            border-bottom: 2px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .sticky-header h2 {
+            margin: 0;
+            text-align: center;
         }
 
         /* コメント */
@@ -187,18 +211,12 @@
         /* 設定パネル */
         #settingsPanel {
             display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
             background: #fff;
             border: 1px solid #ccc;
-            padding: 15px;
+            padding: 0;
             z-index: 1000;
-            font-size: 1em;
-            width: 250px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             border-radius: 8px;
-            margin-top: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         #settingsPanel div {
@@ -354,6 +372,226 @@
             color: #333;
         }
 
+        /* ギフト履歴モーダル */
+        #giftHistoryModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            min-width: 400px;
+            max-width: 600px;
+        }
+
+        #giftHistoryModal.show {
+            display: block;
+        }
+
+        #giftHistoryModal h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .gift-history-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .gift-history-time {
+            font-size: 0.85em;
+            color: #999;
+            min-width: 80px;
+        }
+
+        .gift-history-gift {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .gift-history-gift img {
+            width: 30px;
+            height: 30px;
+            margin-right: 8px;
+        }
+
+        .gift-history-gift-name {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .gift-history-count {
+            color: #666;
+        }
+
+        /* 高額ギフト表示エリア */
+        #highValueGiftContainer {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            max-width: calc(100% - 20px);
+            max-height: 150px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+        }
+
+        .high-value-gift-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 3px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+            min-width: 100px;
+        }
+
+        /* 上段：アバターとギフトアイコン */
+        .high-value-gift-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 銀色枠（10000pt以上） */
+        .high-value-gift-item.silver {
+            border-color: #C0C0C0;
+            box-shadow: 0 2px 8px rgba(192, 192, 192, 0.5);
+        }
+
+        /* ゴールド枠（30000pt以上） */
+        .high-value-gift-item.gold {
+            border-color: #FFD700;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.6);
+        }
+
+        .high-value-gift-item img.avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .high-value-gift-item img.gift {
+            width: 35px;
+            height: 35px;
+        }
+
+        .high-value-gift-item .count {
+            font-weight: bold;
+            color: #d00;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        /* 高額ギフト情報ポップアップ */
+        .high-value-popup {
+            position: fixed;
+            background: white;
+            border: 3px solid #4CAF50;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            min-width: 250px;
+            display: none;
+        }
+
+        .high-value-popup.show {
+            display: block;
+        }
+
+        .high-value-popup-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .high-value-popup-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .high-value-popup-user {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .high-value-popup-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .high-value-popup-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .high-value-popup-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .high-value-popup-value {
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .high-value-popup-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #999;
+            font-weight: bold;
+        }
+
+        .high-value-popup-close:hover {
+            color: #333;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         #alarmModal h3 {
             margin-top: 0;
         }
@@ -418,6 +656,18 @@
 
         .tenkey-btn.clear:hover {
             background: #ffcccc;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .comment-header-buttons {
+            display: flex;
+            align-items: center;
         }
 
         #alarmModal .modal-buttons {
@@ -516,38 +766,262 @@
             <span id="clockSpan" style="font-weight:bold; font-size:1.1em;">--:--:--</span>
             <button id="alarmSetBtn">アラームセット</button>
             <span id="alarmStatusSpan" style="color: #d00; display:none;">🔔 <span id="alarmTimeDisplay"></span></span>
-            <button id="pauseBtn" style="background:#ff9800; color:white; margin-left:10px;">⏸ 通信停止</button>
+            <button id="pauseBtn" style="background:#ff9800; color:white; margin-left:10px; display:none;">⏸
+                通信停止</button>
         </div>
     </header>
 
     <div class="container">
         <div class="column">
-            <div style="display:flex; justify-content:center; align-items:center; position:relative;">
-                <h2>コメント</h2>
-                <button id="toggleSettings" style="position:absolute; right:0; font-size:0.8em;">設定</button>
+            <div class="sticky-header"
+                style="display:flex; justify-content:space-between; align-items:center; padding:5px 10px;">
+                <button id="checkCommentBtn"
+                    style="font-size:0.8em; background:#4CAF50; color:white; padding:5px 10px; border:none; border-radius:3px; cursor:pointer;">コメ抜チェック</button>
+                <h2 style="margin:0; font-size:1.2em;">コメント</h2>
+                <div style="display:flex; gap:5px;">
+                    <button id="scrollTopBtn" style="font-size:0.8em; cursor:pointer;">先頭へ</button>
+                    <button id="toggleSettings" style="font-size:0.8em; cursor:pointer;">設定</button>
+                </div>
 
-                <div id="settingsPanel">
-                    <div><strong>コメント:</strong> 文字サイズ <input type="number" id="commentFontSize" value="14" min="10"
-                            max="30"> px
-                        色 <input type="color" id="commentColor" value="#000000"></div>
-                    <button id="applyDisplaySettings">適用</button>
+                <div id="settingsPanel"
+                    style="top: 50%; left: 50%; transform: translate(-50%, -50%); position: fixed; margin: 0; min-width: 300px;">
+                    <div id="settingsHeader"
+                        style="background: #eee; padding: 5px 10px; cursor: move; border-bottom: 1px solid #ccc; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold;">設定</span>
+                        <button id="closeSettings"
+                            style="border: none; background: none; cursor: pointer; font-size: 1.2em;">✕</button>
+                    </div>
+                    <div style="padding: 15px;">
+                        <div><strong>コメント:</strong> 文字サイズ <input type="number" id="commentFontSize" value="14" min="10"
+                                max="30"> px
+                            色 <input type="color" id="commentColor" value="#000000"></div>
+                        <div style="margin-top: 10px;"><label><input type="checkbox" id="testModeCheckbox">
+                                テストモード（通信停止ボタン表示）</label></div>
+
+                        <!-- テスト機能ボタン（テストモード時のみ表示） -->
+                        <div id="testButtons"
+                            style="margin-top: 10px; display: none; border-top: 1px solid #eee; padding-top: 10px;">
+                            <div style="margin-bottom:5px;">
+                                <button id="testCommentBtn" style="width:100%; margin-bottom:5px;">テストコメント</button>
+                                <button id="testGiftBtn" style="width:100%;">テストギフト（一括）</button>
+                            </div>
+
+                            <!-- テストユーザー選択 -->
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                                <div style="font-size: 0.9em; margin-bottom: 5px; font-weight: bold;">テストユーザー選択:</div>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+                                    <button class="test-user-btn" data-user-id="1001" data-user-name="テストA"
+                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">A</button>
+                                    <button class="test-user-btn" data-user-id="1002" data-user-name="テストB"
+                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">B</button>
+                                    <button class="test-user-btn" data-user-id="1003" data-user-name="テストC"
+                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">C</button>
+                                    <button class="test-user-btn" data-user-id="1004" data-user-name="テストD"
+                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">D</button>
+                                    <button class="test-user-btn" data-user-id="1005" data-user-name="テストE"
+                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">E</button>
+                                    <button class="test-user-btn" data-user-id="1006" data-user-name="テストF"
+                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">F</button>
+                                </div>
+                            </div>
+
+                            <!-- ×1個ボタン行 -->
+                            <div
+                                style="display: flex; justify-content: space-between; margin-top: 5px; align-items: center;">
+                                <span style="font-size: 0.8em; width: 25px;">×1</span>
+                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000421" data-count="1" data-type="2"
+                                    title="無料ギフト(星) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000844" data-count="1" data-type="2"
+                                    title="無料ギフト(その他) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
+                                    class="test-gift-icon" data-id="3" data-count="1" data-type="1" title="有料ギフト(3) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
+                                    class="test-gift-icon" data-id="800003" data-count="1" data-type="1"
+                                    title="有料ギフト(800003) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
+                                    class="test-gift-icon" data-id="21" data-count="1" data-type="1"
+                                    title="有料ギフト(21) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000349" data-count="1" data-type="1"
+                                    title="有料ギフト(3000349) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000752" data-count="1" data-type="2"
+                                    title="無料ギフト(3000752) x1"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                            </div>
+                            <!-- ×10個ボタン行 -->
+                            <div
+                                style="display: flex; justify-content: space-between; margin-top: 3px; align-items: center;">
+                                <span style="font-size: 0.8em; width: 25px;">×10</span>
+                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000421" data-count="10" data-type="2"
+                                    title="無料ギフト(星) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000844" data-count="10" data-type="2"
+                                    title="無料ギフト(その他) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
+                                    class="test-gift-icon" data-id="3" data-count="10" data-type="1"
+                                    title="有料ギフト(3) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
+                                    class="test-gift-icon" data-id="800003" data-count="10" data-type="1"
+                                    title="有料ギフト(800003) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
+                                    class="test-gift-icon" data-id="21" data-count="10" data-type="1"
+                                    title="有料ギフト(21) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000349" data-count="10" data-type="1"
+                                    title="有料ギフト(3000349) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000752" data-count="10" data-type="2"
+                                    title="無料ギフト(3000752) x10"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                            </div>
+                            <!-- ×100個ボタン行 -->
+                            <div
+                                style="display: flex; justify-content: space-between; margin-top: 3px; align-items: center;">
+                                <span style="font-size: 0.8em; width: 25px;">×100</span>
+                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000421" data-count="100" data-type="2"
+                                    title="無料ギフト(星) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000844" data-count="100" data-type="2"
+                                    title="無料ギフト(その他) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
+                                    class="test-gift-icon" data-id="3" data-count="100" data-type="1"
+                                    title="有料ギフト(3) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
+                                    class="test-gift-icon" data-id="800003" data-count="100" data-type="1"
+                                    title="有料ギフト(800003) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
+                                    class="test-gift-icon" data-id="21" data-count="100" data-type="1"
+                                    title="有料ギフト(21) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000349" data-count="100" data-type="1"
+                                    title="有料ギフト(3000349) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000752" data-count="100" data-type="2"
+                                    title="無料ギフト(3000752) x100"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                            </div>
+                            <!-- ×1000個ボタン行 -->
+                            <div
+                                style="display: flex; justify-content: space-between; margin-top: 3px; align-items: center;">
+                                <span style="font-size: 0.8em; width: 25px;">×1000</span>
+                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000421" data-count="1000" data-type="2"
+                                    title="無料ギフト(星) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000844" data-count="1000" data-type="2"
+                                    title="無料ギフト(その他) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
+                                    class="test-gift-icon" data-id="3" data-count="1000" data-type="1"
+                                    title="有料ギフト(3) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
+                                    class="test-gift-icon" data-id="800003" data-count="1000" data-type="1"
+                                    title="有料ギフト(800003) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
+                                    class="test-gift-icon" data-id="21" data-count="1000" data-type="1"
+                                    title="有料ギフト(21) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000349" data-count="1000" data-type="1"
+                                    title="有料ギフト(3000349) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
+                                    class="test-gift-icon" data-id="3000752" data-count="1000" data-type="2"
+                                    title="無料ギフト(3000752) x1000"
+                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; text-align: right;">
+                            <button id="applyDisplaySettings">適用</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="comment"></div>
         </div>
 
+        <!-- ギフト履歴モーダル -->
+        <div id="giftHistoryModal" class="modal">
+            <h3>ギフト履歴 - <span id="giftHistoryUser"></span></h3>
+            <button id="closeGiftHistory" style="position:absolute; top:10px; right:10px; cursor:pointer;">✕</button>
+            <div id="giftHistoryList" style="max-height:400px; overflow-y:auto; margin-top:10px;"></div>
+        </div>
+
+        <!-- 高額ギフト表示エリア -->
+        <div id="highValueGiftContainer"></div>
+
+        <!-- 高額ギフト情報ポップアップ -->
+        <div id="highValuePopup" class="high-value-popup">
+            <span class="high-value-popup-close"
+                onclick="document.getElementById('highValuePopup').classList.remove('show')">×</span>
+            <div class="high-value-popup-header">
+                <img id="popupAvatar" src="" alt="avatar">
+                <div id="popupUserName" class="high-value-popup-user"></div>
+            </div>
+            <div class="high-value-popup-content">
+                <div class="high-value-popup-row">
+                    <span class="high-value-popup-label">ギフト:</span>
+                    <span id="popupGiftName" class="high-value-popup-value"></span>
+                </div>
+                <div class="high-value-popup-row">
+                    <span class="high-value-popup-label">累積個数:</span>
+                    <span id="popupTotalCount" class="high-value-popup-value"></span>
+                </div>
+                <div class="high-value-popup-row">
+                    <span class="high-value-popup-label">基本金額:</span>
+                    <span id="popupBasePrice" class="high-value-popup-value"></span>
+                </div>
+                <div class="high-value-popup-row">
+                    <span class="high-value-popup-label">累積ポイント:</span>
+                    <span id="popupTotalPoints" class="high-value-popup-value"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="column">
-            <h2>無料ギフト ⭐</h2>
+            <div class="sticky-header">
+                <h2>無料ギフト ⭐</h2>
+            </div>
             <div id="freeStar"></div>
         </div>
 
         <div class="column">
-            <h2>無料ギフト（その他）</h2>
+            <div class="sticky-header">
+                <h2>無料ギフト（その他）</h2>
+            </div>
             <div id="freeOther"></div>
         </div>
 
         <div class="column">
-            <h2>有料ギフト</h2>
+            <div class="sticky-header">
+                <h2>有料ギフト</h2>
+            </div>
             <div id="paidGift"></div>
         </div>
     </div>
@@ -559,6 +1033,12 @@
         let startedAt = null;
         let hbInterval = null;
         let reconnectTimeout = null;
+
+        // 高額ギフト累積ポイント追跡 { userId_giftId: totalPoints }
+        const highValueGiftPoints = {};
+
+        // 高額ギフト累積個数追跡 { userId_giftId: totalCount }
+        const highValueGiftCounts = {};
 
         // アラーム用
         let alarmTime = null; // "HH:MM" string
@@ -710,6 +1190,9 @@
         // コメント履歴管理 (user_id -> [{time, name, text}, ...])
         const commentHistory = {};
 
+        // ギフト履歴管理 (user_id -> [{time, name, giftId, giftName, count, type}, ...])
+        const giftHistory = {};
+
         // コメント重複チェック用 (comment_idまたはハッシュ値を保存)
         const receivedComments = new Set();
         let commentLogInterval = null;
@@ -723,7 +1206,18 @@
         const settingsPanel = document.getElementById("settingsPanel");
 
         document.getElementById("toggleSettings").onclick = () => {
-            settingsPanel.style.display = (settingsPanel.style.display === "none") ? "block" : "none";
+            if (settingsPanel.style.display === "none" || settingsPanel.style.display === "") {
+                settingsPanel.style.display = "block";
+                // 中央に表示（初回のみ、あるいは毎回リセットするかは要件次第だが、ドラッグ後は位置維持したいのでリセットしない）
+                // ただし、display:noneからblockになるときに位置がおかしくなる場合があるので、
+                // fixedで中央配置のCSSが効いているはず。
+            } else {
+                settingsPanel.style.display = "none";
+            }
+        };
+
+        document.getElementById("closeSettings").onclick = () => {
+            settingsPanel.style.display = "none";
         };
 
         // 設定適用
@@ -734,9 +1228,107 @@
             document.getElementById("comment").style.fontSize = commentSettings.size + "px";
             document.getElementById("comment").style.color = commentSettings.color;
 
+            // テストモード（通信停止ボタン表示）切り替え
+            const isTestMode = document.getElementById("testModeCheckbox").checked;
+            document.getElementById("pauseBtn").style.display = isTestMode ? "inline-block" : "none";
+            document.getElementById("testButtons").style.display = isTestMode ? "block" : "none";
+
             // パネルを閉じる
             settingsPanel.style.display = "none";
         };
+
+        // テストユーザー選択機能
+        let selectedTestUser = { u: 1001, ac: "テストA", av: 1 };
+
+        document.querySelectorAll(".test-user-btn").forEach(btn => {
+            btn.onclick = () => {
+                // 全てのボタンから選択状態を解除
+                document.querySelectorAll(".test-user-btn").forEach(b => {
+                    b.style.background = "white";
+                    b.style.borderColor = "#ddd";
+                    b.style.color = "#333";
+                    b.style.fontWeight = "normal";
+                });
+
+                // クリックされたボタンを選択状態に
+                btn.style.background = "#4CAF50";
+                btn.style.borderColor = "#4CAF50";
+                btn.style.color = "white";
+                btn.style.fontWeight = "bold";
+
+                // 選択されたユーザー情報を保存
+                selectedTestUser = {
+                    u: parseInt(btn.getAttribute("data-user-id")),
+                    ac: btn.getAttribute("data-user-name"),
+                    av: parseInt(btn.getAttribute("data-user-id")) % 100 // アバターIDは適当に設定
+                };
+            };
+        });
+
+        // 初期選択（ユーザーA）
+        document.querySelector(".test-user-btn[data-user-id='1001']").click();
+
+        // テストコメント機能
+        document.getElementById("testCommentBtn").onclick = () => {
+            const testComment = {
+                u: selectedTestUser.u,
+                ac: selectedTestUser.ac,
+                cm: "テストコメント " + new Date().toLocaleTimeString(),
+                av: selectedTestUser.av,
+                created_at: Math.floor(Date.now() / 1000)
+            };
+            showComment(testComment);
+        };
+
+        // テストギフト機能
+        document.getElementById("testGiftBtn").onclick = () => {
+            const now = Math.floor(Date.now() / 1000);
+
+            // 無料ギフト ギフトID3000421×100個
+            showGift({ ...selectedTestUser, g: 3000421, n: 100, created_at: now, gt: 2 });
+
+            // 無料ギフトその他 ギフトID3000844×10個
+            setTimeout(() => {
+                showGift({ ...selectedTestUser, g: 3000844, n: 10, created_at: now, gt: 2 });
+            }, 100);
+
+            // 有料ギフト ギフトID 3×10個
+            setTimeout(() => {
+                showGift({ ...selectedTestUser, g: 3, n: 10, created_at: now, gt: 1 });
+            }, 200);
+
+            // 有料ギフト ギフトID 800003×1個
+            setTimeout(() => {
+                showGift({ ...selectedTestUser, g: 800003, n: 1, created_at: now, gt: 1 });
+            }, 300);
+
+            // 有料ギフト ギフトID 21×1個
+            setTimeout(() => {
+                showGift({ ...selectedTestUser, g: 21, n: 1, created_at: now, gt: 1 });
+            }, 400);
+
+            // 有料ギフト ギフトID 3000349×1個
+            setTimeout(() => {
+                showGift({ ...selectedTestUser, g: 3000349, n: 1, created_at: now, gt: 1 });
+            }, 500);
+
+            // 無料ギフトその他 ギフトID 3000752×1個
+            setTimeout(() => {
+                showGift({ ...selectedTestUser, g: 3000752, n: 1, created_at: now, gt: 2 });
+            }, 600);
+        };
+
+        // 個別テストギフトボタン
+        document.querySelectorAll(".test-gift-icon").forEach(icon => {
+            icon.onclick = () => {
+                const giftId = parseInt(icon.getAttribute("data-id"));
+                const count = parseInt(icon.getAttribute("data-count"));
+                const type = parseInt(icon.getAttribute("data-type"));
+                const now = Math.floor(Date.now() / 1000);
+
+                showGift({ ...selectedTestUser, g: giftId, n: count, created_at: now, gt: type }, type);
+            };
+        });
 
         // 通信一時停止/再開ボタン
         document.getElementById("pauseBtn").onclick = () => {
@@ -749,6 +1341,92 @@
                 btn.textContent = "⏸ 通信停止";
                 btn.style.background = "#ff9800";
             }
+        };
+
+        // コメ抜チェックボタン
+        document.getElementById("checkCommentBtn").onclick = async () => {
+            if (!currentRoomId) {
+                alert("ルームに接続してください");
+                return;
+            }
+
+            const btn = document.getElementById("checkCommentBtn");
+            btn.disabled = true;
+            btn.textContent = "チェック中...";
+
+            try {
+                const res = await fetch(`/comment_log?room_id=${currentRoomId}`);
+                const json = await res.json();
+
+                if (json && json.comment_log && Array.isArray(json.comment_log)) {
+                    const comments = json.comment_log.slice().reverse();
+                    let restoredCount = 0;
+
+                    comments.forEach(comment => {
+                        if (comment.user_id === 0) return;
+
+                        const isDuplicate = Array.from(receivedComments).some(hash => {
+                            const firstUnderscore = hash.indexOf('_');
+                            const lastUnderscore = hash.lastIndexOf('_');
+
+                            if (firstUnderscore === -1 || lastUnderscore === -1 || firstUnderscore === lastUnderscore) {
+                                return false;
+                            }
+
+                            const storedUserId = hash.substring(0, firstUnderscore);
+                            const storedTimestamp = hash.substring(lastUnderscore + 1);
+                            const storedComment = hash.substring(firstUnderscore + 1, lastUnderscore);
+
+                            if (storedUserId == comment.user_id && storedComment === comment.comment) {
+                                const timeDiff = Math.abs(parseInt(storedTimestamp) - comment.created_at);
+                                return timeDiff <= 5;
+                            }
+                            return false;
+                        });
+
+                        if (!isDuplicate) {
+                            const commentHash = `${comment.user_id}_${comment.comment}_${comment.created_at}`;
+                            receivedComments.add(commentHash);
+
+                            const commentObj = {
+                                u: comment.user_id,
+                                ac: comment.name,
+                                cm: comment.comment,
+                                av: comment.avatar_id,
+                                created_at: comment.created_at,
+                                fromPolling: true
+                            };
+                            showComment(commentObj);
+                            restoredCount++;
+                        }
+                    });
+
+                    btn.textContent = `${restoredCount}件復元`;
+                    setTimeout(() => {
+                        btn.textContent = "コメ抜チェック";
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    btn.textContent = "エラー";
+                    setTimeout(() => {
+                        btn.textContent = "コメ抜チェック";
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            } catch (e) {
+                console.error("コメ抜チェックエラー:", e);
+                btn.textContent = "エラー";
+                setTimeout(() => {
+                    btn.textContent = "コメ抜チェック";
+                    btn.disabled = false;
+                }, 2000);
+            }
+        };
+
+        // 先頭へボタン
+        document.getElementById("scrollTopBtn").onclick = () => {
+            const commentDiv = document.getElementById("comment");
+            commentDiv.scrollTop = 0;
         };
 
 
@@ -813,7 +1491,7 @@
             // コメントをクリック可能に
             div.style.cursor = "pointer";
             div.onclick = () => {
-                showCommentHistory(c.u, c.ac);
+                showCommentHistory(c.u, c.ac, c.av);
             };
 
             // コメント履歴に追加
@@ -821,13 +1499,23 @@
                 commentHistory[c.u] = [];
             }
             commentHistory[c.u].unshift({
-                time: new Date(),
+                time: c.created_at ? new Date(c.created_at * 1000) : new Date(),
                 name: c.ac,
-                text: c.cm
+                text: c.cm,
+                avatar: c.av
             });
             // 最大100件まで保持
             if (commentHistory[c.u].length > 100) {
                 commentHistory[c.u].pop();
+            }
+
+            // コメント履歴モーダルが開いている場合、リアルタイム更新
+            const commentModal = document.getElementById("commentHistoryModal");
+            if (commentModal.classList.contains("show")) {
+                const currentUserId = commentModal.getAttribute("data-user-id");
+                if (currentUserId == c.u) {
+                    showCommentHistory(c.u, c.ac, c.av);
+                }
             }
 
             // 重複チェック用にコメントを記録
@@ -838,13 +1526,23 @@
         }
 
         // コメント履歴を表示
-        function showCommentHistory(userId, userName) {
+        function showCommentHistory(userId, userName, avatarId) {
             const modal = document.getElementById("commentHistoryModal");
             const userSpan = document.getElementById("commentHistoryUser");
             const listDiv = document.getElementById("commentHistoryList");
 
-            userSpan.textContent = userName;
+            // アバター付きでユーザー名を表示
+            if (avatarId) {
+                const avatarImg = `<img src="https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png" style="width:30px; height:30px; vertical-align:middle; margin-right:8px; border-radius:50%;">`;
+                userSpan.innerHTML = avatarImg + userName;
+            } else {
+                userSpan.textContent = userName;
+            }
+
             listDiv.innerHTML = "";
+
+            // 現在表示中のユーザーIDを保存
+            modal.setAttribute("data-user-id", userId);
 
             const history = commentHistory[userId] || [];
             if (history.length === 0) {
@@ -869,7 +1567,7 @@
             }
 
             modal.classList.add("show");
-            document.getElementById("overlay").style.display = "block";
+            // オーバーレイは表示しない
         }
 
         // コメント履歴モーダルを閉じる
@@ -878,6 +1576,86 @@
             // 他のモーダルが開いていなければオーバーレイも閉じる
             if (document.getElementById("alarmModal").style.display !== "block" &&
                 document.getElementById("notificationModal").style.display !== "block") {
+                document.getElementById("overlay").style.display = "none";
+            }
+        };
+
+        // ギフト履歴を表示
+        function showGiftHistory(userId, userName) {
+            const modal = document.getElementById("giftHistoryModal");
+            const userSpan = document.getElementById("giftHistoryUser");
+            const listDiv = document.getElementById("giftHistoryList");
+
+            userSpan.textContent = userName;
+            listDiv.innerHTML = "";
+
+            const history = giftHistory[userId] || [];
+            if (history.length === 0) {
+                listDiv.innerHTML = "<p style='text-align:center; color:#999;'>ギフト履歴がありません</p>";
+            } else {
+                let totalPoints = 0;
+
+                history.forEach(item => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "gift-history-item";
+
+                    const timeDiv = document.createElement("div");
+                    timeDiv.className = "gift-history-time";
+                    timeDiv.textContent = item.time.toLocaleTimeString();
+
+                    const giftDiv = document.createElement("div");
+                    giftDiv.className = "gift-history-gift";
+
+                    const giftImg = document.createElement("img");
+                    giftImg.src = `https://static.showroom-live.com/image/gift/${item.giftId}_s.png?v=7`;
+
+                    const giftNameSpan = document.createElement("span");
+                    giftNameSpan.className = "gift-history-gift-name";
+                    giftNameSpan.textContent = item.giftName;
+
+                    const countSpan = document.createElement("span");
+                    countSpan.className = "gift-history-count";
+                    countSpan.textContent = `×${item.count}`;
+
+                    giftDiv.appendChild(giftImg);
+                    giftDiv.appendChild(giftNameSpan);
+                    giftDiv.appendChild(countSpan);
+
+                    itemDiv.appendChild(timeDiv);
+                    itemDiv.appendChild(giftDiv);
+                    listDiv.appendChild(itemDiv);
+
+                    // ポイント計算
+                    const giftInfo = giftMasterData[item.giftId];
+                    if (giftInfo) {
+                        const points = calculateGiftPoints(item.giftId, item.count, giftInfo.free, giftInfo.point);
+                        totalPoints += points;
+                    }
+                });
+
+                // 合計ポイント表示
+                const totalDiv = document.createElement("div");
+                totalDiv.style.marginTop = "15px";
+                totalDiv.style.padding = "10px";
+                totalDiv.style.borderTop = "2px solid #4CAF50";
+                totalDiv.style.textAlign = "right";
+                totalDiv.style.fontWeight = "bold";
+                totalDiv.style.fontSize = "1.1em";
+                totalDiv.textContent = `合計: ${Math.floor(totalPoints).toLocaleString()}pt`;
+                listDiv.appendChild(totalDiv);
+            }
+
+            modal.classList.add("show");
+            // オーバーレイは表示しない
+        }
+
+        // ギフト履歴モーダルを閉じる
+        document.getElementById("closeGiftHistory").onclick = () => {
+            document.getElementById("giftHistoryModal").classList.remove("show");
+            // 他のモーダルが開いていなければオーバーレイも閉じる
+            if (document.getElementById("alarmModal").style.display !== "block" &&
+                document.getElementById("notificationModal").style.display !== "block" &&
+                !document.getElementById("commentHistoryModal").classList.contains("show")) {
                 document.getElementById("overlay").style.display = "none";
             }
         };
@@ -939,6 +1717,174 @@
             }
         })();
 
+        // ギフト履歴モーダルをドラッグ可能にする
+        (function () {
+            const modal = document.getElementById("giftHistoryModal");
+            // h3をドラッグハンドルにする
+            const header = modal.querySelector("h3");
+
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            header.style.cursor = "move";
+
+            header.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", drag);
+            document.addEventListener("mouseup", dragEnd);
+
+            function dragStart(e) {
+                // 閉じるボタンをクリックした場合はドラッグしない
+                if (e.target.id === "closeGiftHistory" || e.target.closest("#closeGiftHistory")) {
+                    return;
+                }
+
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === header || header.contains(e.target)) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, modal);
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate(calc(-50% + ${xPos}px), calc(-50% + ${yPos}px))`;
+            }
+        })();
+
+        // 設定パネルをドラッグ可能にする
+        (function () {
+            const modal = document.getElementById("settingsPanel");
+            const header = document.getElementById("settingsHeader");
+
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            header.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", drag);
+            document.addEventListener("mouseup", dragEnd);
+
+            function dragStart(e) {
+                if (e.target.id === "closeSettings" || e.target.closest("#closeSettings")) {
+                    return;
+                }
+
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === header || header.contains(e.target)) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, modal);
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate(calc(-50% + ${xPos}px), calc(-50% + ${yPos}px))`;
+            }
+        })();
+        (function () {
+            const modal = document.getElementById("giftHistoryModal");
+            const header = modal.querySelector("h3");
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            header.style.cursor = "move";
+
+            header.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", drag);
+            document.addEventListener("mouseup", dragEnd);
+
+            function dragStart(e) {
+                if (e.target.id === "closeGiftHistory" || e.target.closest("#closeGiftHistory")) {
+                    return;
+                }
+
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === header || header.contains(e.target)) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, modal);
+                }
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate(calc(-50% + ${xPos}px), calc(-50% + ${yPos}px))`;
+            }
+        })();
+
 
 
         // ギフト表示（累積）
@@ -948,8 +1894,8 @@
 
             // 無料ギフト（gt===2）
             if (gt === 2) {
-                if (g.g === 3000421) {
-                    // 星（ID:3000421）
+                if (g.g === 3000421 || g.g === 3000421) {
+                    // 星（ID:3000421, 3000421）
                     containerId = "freeStar";
                     giftMap = freeStarMap;
                 } else {
@@ -971,6 +1917,33 @@
                 const item = giftMap[key];
                 item.count += g.n;
                 item.time = Date.now();
+
+                // ギフト履歴に追加（更新時も）
+                const giftInfo = giftMasterData[g.g];
+                const giftType = gt === 2 ? (g.g === 3000421 ? 'freeStar' : 'freeOther') : 'paid';
+                if (!giftHistory[g.u]) {
+                    giftHistory[g.u] = [];
+                }
+                giftHistory[g.u].unshift({
+                    time: g.created_at ? new Date(g.created_at * 1000) : new Date(),
+                    name: g.ac,
+                    giftId: g.g,
+                    giftName: giftInfo ? giftInfo.name : `ギフトID:${g.g}`,
+                    count: g.n,
+                    type: giftType
+                });
+                if (giftHistory[g.u].length > 100) {
+                    giftHistory[g.u].pop();
+                }
+
+                // ギフト履歴モーダルが開いている場合、リアルタイム更新
+                const giftModal = document.getElementById("giftHistoryModal");
+                if (giftModal.classList.contains("show")) {
+                    const currentUserId = giftModal.getAttribute("data-user-id");
+                    if (currentUserId == g.u) {
+                        showGiftHistory(g.u, g.ac);
+                    }
+                }
 
                 // 表示更新（全ギフト共通のレイアウト）
                 const nameSpan = item.div.querySelector(".gift-name");
@@ -994,6 +1967,9 @@
                     }
                 }
 
+                // 高額ギフトチェック（1回の投稿個数で計算）
+                checkAndDisplayHighValueGift(g.u, g.ac, g.av, g.g, g.n);
+
                 // 最新行としてトップに移動
                 item.div.remove();
                 document.getElementById(containerId).prepend(item.div);
@@ -1005,6 +1981,12 @@
             const div = document.createElement("div");
             div.className = "giftItem";
 
+            // ギフト枠全体をクリック可能に
+            div.style.cursor = "pointer";
+            div.onclick = () => {
+                showGiftHistory(g.u, g.ac);
+            };
+
             // 全ギフト共通のレイアウト
             const img1 = document.createElement("img");
             img1.src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${g.av}.png`;
@@ -1014,6 +1996,33 @@
             if (giftInfo) {
                 // img1.title = `${giftInfo.name}: ${giftInfo.point}pt`; // アバター画像ではなくギフト画像につけるべきか？
                 // ユーザー要望は「有料ギフトのマウスオーバーした際に」なので、ギフト画像につけるのが適切
+            }
+
+            // ギフト履歴に追加
+            const giftType = gt === 2 ? (g.g === 3000421 ? 'freeStar' : 'freeOther') : 'paid';
+            if (!giftHistory[g.u]) {
+                giftHistory[g.u] = [];
+            }
+            giftHistory[g.u].unshift({
+                time: g.created_at ? new Date(g.created_at * 1000) : new Date(),
+                name: g.ac,
+                giftId: g.g,
+                giftName: giftInfo ? giftInfo.name : `ギフトID:${g.g}`,
+                count: g.n,
+                type: giftType
+            });
+            // 最大100件まで保持
+            if (giftHistory[g.u].length > 100) {
+                giftHistory[g.u].pop();
+            }
+
+            // ギフト履歴モーダルが開いている場合、リアルタイム更新
+            const giftModal = document.getElementById("giftHistoryModal");
+            if (giftModal.classList.contains("show")) {
+                const currentUserId = giftModal.getAttribute("data-user-id");
+                if (currentUserId == g.u) {
+                    showGiftHistory(g.u, g.ac);
+                }
             }
 
             const contentDiv = document.createElement("div");
@@ -1060,6 +2069,235 @@
             document.getElementById(containerId).prepend(div);
 
             giftMap[key] = { div: div, count: g.n, time: Date.now() };
+
+            // 高額ギフトチェック
+            checkAndDisplayHighValueGift(g.u, g.ac, g.av, g.g, g.n);
+        }
+
+        // ギフトポイント計算関数
+        function calculateGiftPoints(giftId, count, isFree, basePoint) {
+            // 個数による倍率テーブル
+            const quantityMultipliers = {
+                1: 1.00,
+                2: 1.04,
+                3: 1.06,
+                4: 1.08,
+                5: 1.10,
+                6: 1.12,
+                7: 1.14,
+                8: 1.16,
+                9: 1.18,
+                10: 1.20
+            };
+
+            // 個数倍率を取得（10個超える場合は1.2倍固定）
+            const quantityMultiplier = count <= 10 ? quantityMultipliers[count] : 1.20;
+
+            let totalPoints = 0;
+
+            if (isFree) {
+                // 無料ギフトの計算
+                const isStar = (giftId === 3000421 || giftId === 800094);
+
+                if (isStar) {
+                    // 無料ギフト☆: 基本ポイント × 個数 × 倍率
+                    totalPoints = basePoint * count * quantityMultiplier;
+                } else {
+                    // 無料ギフト（その他）: 基本ポイント × 個数 × 倍率
+                    totalPoints = basePoint * count * quantityMultiplier;
+
+                    // ギフトID 800093 は追加で2.5倍
+                    if (giftId === 800093) {
+                        totalPoints *= 2.5;
+                    }
+                }
+            } else {
+                // 有料ギフトの計算
+                // 基本G × 2.5 × 個数 × 倍率
+                totalPoints = basePoint * 2.5 * count * quantityMultiplier;
+
+                // 500G以上のギフトは×1～×10個すべて1.2倍計算
+                if (basePoint >= 500 && count <= 10) {
+                    totalPoints = basePoint * 2.5 * count * 1.20;
+                }
+            }
+
+            return Math.floor(totalPoints);
+        }
+
+        // 高額ギフト表示チェックと更新
+        function checkAndDisplayHighValueGift(userId, userName, avatarId, giftId, count) {
+            // ギフト情報を取得（なければデフォルト作成）
+            let giftInfo = giftMasterData[giftId];
+            if (!giftInfo) {
+                // 未知のギフトの場合のデフォルト値
+                // 基本的に有料ギフト扱いとし、ポイントは不明なので仮に1Gとするか、
+                // あるいは無料ギフトとして扱うか。安全側に倒して「無料ギフト扱い・1pt」とするか、
+                // 逆に「有料ギフト扱い・1G」とするか。
+                // ここでは「無料ギフト（その他）・1pt」として扱い、高額判定には引っかかりにくくする
+                giftInfo = {
+                    name: `Unknown Gift (${giftId})`,
+                    free: true,
+                    point: 1
+                };
+                // もし有料ギフトだと判明している場合は point を調整するロジックが必要だが、
+                // WebSocketの情報だけでは判別できないため、一旦これで進める。
+                // ※実際の運用では新しいギフトIDを随時追加する必要がある
+            }
+
+            // 1回の投稿のポイント計算
+            const pointsThisGift = calculateGiftPoints(giftId, count, giftInfo.free, giftInfo.point);
+
+            // 累積ポイントを追跡
+            const key = `${userId}_${giftId}`;
+            if (!highValueGiftPoints[key]) {
+                highValueGiftPoints[key] = 0;
+            }
+            highValueGiftPoints[key] += pointsThisGift;
+
+            // 累積個数を追跡
+            if (!highValueGiftCounts[key]) {
+                highValueGiftCounts[key] = 0;
+            }
+            highValueGiftCounts[key] += count;
+
+            const cumulativePoints = highValueGiftPoints[key];
+            const cumulativeCount = highValueGiftCounts[key];
+
+            let shouldDisplay = false;
+
+            if (!giftInfo.free) {
+                // 有料ギフト: 累積10000G以上
+                if (cumulativePoints >= 10000) {
+                    shouldDisplay = true;
+                }
+            } else {
+                // 無料ギフト
+                // 星（ID: 3000421, 800094）以外の場合
+                const isStar = (giftId === 3000421 || giftId === 800094);
+                if (!isStar) {
+                    // 無料ギフト（その他）: 累積10000pt以上
+                    if (cumulativePoints >= 10000) {
+                        shouldDisplay = true;
+                    }
+                }
+            }
+
+            // 表示対象の場合のみ処理
+            if (shouldDisplay) {
+                const container = document.getElementById("highValueGiftContainer");
+                const itemId = `high-value-${userId}-${giftId}`;
+                let itemDiv = document.getElementById(itemId);
+
+                if (itemDiv) {
+                    // 既存の要素を更新（累積ポイント表示）
+                    const countSpan = itemDiv.querySelector(".count");
+                    countSpan.textContent = `${Math.floor(cumulativePoints).toLocaleString()}pt`;
+
+                    // 枠の色を更新
+                    itemDiv.classList.remove("silver", "gold");
+                    if (cumulativePoints >= 30000) {
+                        itemDiv.classList.add("gold");
+                    } else if (cumulativePoints >= 10000) {
+                        itemDiv.classList.add("silver");
+                    }
+
+                    // アニメーション再生のためにクラスを付け外し
+                    itemDiv.classList.remove("high-value-gift-item");
+                    void itemDiv.offsetWidth; // リフロー強制
+                    itemDiv.classList.add("high-value-gift-item");
+
+                    // 表示順を一番下に（最新にする）
+                    container.appendChild(itemDiv);
+                } else {
+                    // 新規作成
+                    itemDiv = document.createElement("div");
+                    itemDiv.id = itemId;
+                    itemDiv.className = "high-value-gift-item";
+
+                    // 枠の色を設定
+                    if (cumulativePoints >= 30000) {
+                        itemDiv.classList.add("gold");
+                    } else if (cumulativePoints >= 10000) {
+                        itemDiv.classList.add("silver");
+                    }
+
+                    const avatarImg = document.createElement("img");
+                    avatarImg.className = "avatar";
+                    avatarImg.src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png`;
+                    avatarImg.title = userName; // ユーザー名をツールチップに
+
+                    const giftImg = document.createElement("img");
+                    giftImg.className = "gift";
+                    giftImg.src = `https://static.showroom-live.com/image/gift/${giftId}_s.png?v=7`;
+                    // ギフト名をツールチップに
+                    const giftName = giftInfo.name || `ギフトID:${giftId}`;
+                    giftImg.title = giftName;
+
+                    // 上段：アバターとギフトアイコン
+                    const topDiv = document.createElement("div");
+                    topDiv.className = "high-value-gift-top";
+                    topDiv.appendChild(avatarImg);
+                    topDiv.appendChild(giftImg);
+
+                    // 下段：ポイント数
+                    const countSpan = document.createElement("span");
+                    countSpan.className = "count";
+                    countSpan.textContent = `${Math.floor(cumulativePoints).toLocaleString()}pt`;
+
+                    itemDiv.appendChild(topDiv);
+                    itemDiv.appendChild(countSpan);
+
+                    // クリックでポップアップ表示
+                    itemDiv.style.cursor = "pointer";
+                    itemDiv.onclick = (e) => {
+                        const popup = document.getElementById("highValuePopup");
+
+                        // ポップアップの内容を設定
+                        document.getElementById("popupAvatar").src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png`;
+                        document.getElementById("popupUserName").textContent = userName;
+                        document.getElementById("popupGiftName").textContent = giftName;
+                        document.getElementById("popupTotalCount").textContent = `${cumulativeCount.toLocaleString()}個`;
+
+                        const unit = giftInfo.free ? "pt" : "G";
+                        document.getElementById("popupBasePrice").textContent = `${giftInfo.point.toLocaleString()}${unit}`;
+                        document.getElementById("popupTotalPoints").textContent = `${Math.floor(cumulativePoints).toLocaleString()}pt`;
+
+                        // ポップアップを一旦表示して、サイズを取得
+                        popup.classList.add("show");
+                        const popupRect = popup.getBoundingClientRect();
+
+                        // ポップアップの位置を計算（クリック位置の近く）
+                        let left = e.clientX + 10;
+                        let top = e.clientY + 10;
+
+                        // 右端からはみ出す場合は左側に表示
+                        if (left + popupRect.width > window.innerWidth) {
+                            left = e.clientX - popupRect.width - 10;
+                        }
+
+                        // 下端からはみ出す場合は上側に表示
+                        if (top + popupRect.height > window.innerHeight) {
+                            top = e.clientY - popupRect.height - 10;
+                        }
+
+                        // 左端からはみ出さないように
+                        if (left < 0) {
+                            left = 10;
+                        }
+
+                        // 上端からはみ出さないように
+                        if (top < 0) {
+                            top = 10;
+                        }
+
+                        popup.style.left = `${left}px`;
+                        popup.style.top = `${top}px`;
+                    };
+
+                    container.appendChild(itemDiv);
+                }
+            }
         }
 
         // ステータス更新
@@ -1227,10 +2465,28 @@
                             // SHOWROOM運営のシステムメッセージ(user_id: 0)は復元しない
                             if (comment.user_id === 0) return;
 
-                            const commentHash = `${comment.user_id}_${comment.comment}_${comment.created_at}`;
+                            // 重複チェック: 同ユーザーID、同コメント、±5秒以内であれば重複とみなす
+                            const isDuplicate = Array.from(receivedComments).some(hash => {
+                                const firstUnderscore = hash.indexOf('_');
+                                const lastUnderscore = hash.lastIndexOf('_');
 
-                            // 未受信のコメントのみ追加
-                            if (!receivedComments.has(commentHash)) {
+                                if (firstUnderscore === -1 || lastUnderscore === -1 || firstUnderscore === lastUnderscore) {
+                                    return false;
+                                }
+
+                                const storedUserId = hash.substring(0, firstUnderscore);
+                                const storedTimestamp = hash.substring(lastUnderscore + 1);
+                                const storedComment = hash.substring(firstUnderscore + 1, lastUnderscore);
+
+                                if (storedUserId == comment.user_id && storedComment === comment.comment) {
+                                    const timeDiff = Math.abs(parseInt(storedTimestamp) - comment.created_at);
+                                    return timeDiff <= 5; // ±5秒以内
+                                }
+                                return false;
+                            });
+
+                            if (!isDuplicate) {
+                                const commentHash = `${comment.user_id}_${comment.comment}_${comment.created_at}`;
                                 receivedComments.add(commentHash);
 
                                 // コメントを表示（補完されたことを示すマーカー付き）
