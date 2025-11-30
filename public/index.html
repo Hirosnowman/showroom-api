@@ -5,24 +5,32 @@
     <meta charset="utf-8">
     <title>SR コメント・ギフト 3カラム + 設定パネル</title>
     <style>
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: sans-serif;
             margin: 0;
             background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
         }
 
         header {
-            position: fixed;
-            top: 0;
-            left: 0;
+            /* position: fixed; removed */
             width: 100%;
             background: #ddd;
             padding: 5px 10px;
             z-index: 100;
             display: flex;
             flex-direction: column;
-            /* 縦並びに変更 */
             gap: 5px;
+            flex-shrink: 0;
+            /* Prevent shrinking */
+            box-sizing: border-box;
         }
 
         .header-row {
@@ -46,9 +54,14 @@
         .container {
             display: flex;
             gap: 10px;
-            margin-top: 80px;
-            /* ヘッダーが高くなったので調整 */
+            /* margin-top: 80px; removed */
             padding: 10px;
+            flex: 1;
+            /* Fill remaining space */
+            overflow: hidden;
+            /* Prevent container itself from scrolling */
+            min-height: 0;
+            /* Important for nested flex scrolling */
         }
 
         /* 各カラム */
@@ -56,10 +69,14 @@
             flex: 1;
             border: 1px solid #ccc;
             background: #fff;
-            height: 600px;
+            /* height: 600px; removed */
+            height: 100%;
+            /* Fill container */
             display: flex;
             flex-direction: column;
             padding: 0;
+            min-width: 0;
+            /* Prevent flex item overflow */
         }
 
         /* コンテンツエリア（スクロール対象） */
@@ -437,13 +454,56 @@
             color: #666;
         }
 
+        /* カラムリサイザー */
+        .col-resizer {
+            width: 5px;
+            background: #e0e0e0;
+            cursor: col-resize;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .col-resizer:hover {
+            background: #d0d0d0;
+        }
+
+        /* リサイザー */
+        #resizer {
+            height: 8px;
+            background: #e0e0e0;
+            cursor: row-resize;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #resizer:hover {
+            background: #d0d0d0;
+        }
+
+        #resizer::after {
+            content: "....";
+            color: #999;
+            letter-spacing: 2px;
+            font-size: 12px;
+            line-height: 0;
+            margin-top: -8px;
+        }
+
         /* 高額ギフト表示エリア */
         #highValueGiftContainer {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            max-width: calc(100% - 20px);
-            max-height: 150px;
+            /* position: fixed; removed */
+            /* bottom: 10px; removed */
+            /* left: 10px; removed */
+            /* max-width: calc(100% - 20px); removed */
+            width: 100%;
+            height: 150px;
+            /* Default height */
             overflow-x: auto;
             overflow-y: hidden;
             display: flex;
@@ -451,9 +511,11 @@
             gap: 10px;
             padding: 10px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            z-index: 999;
+            /* border-radius: 8px; removed */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 99;
+            flex-shrink: 0;
+            box-sizing: border-box;
         }
 
         .high-value-gift-item {
@@ -966,6 +1028,8 @@
             <div id="comment"></div>
         </div>
 
+        <div class="col-resizer"></div>
+
         <!-- ギフト履歴モーダル -->
         <div id="giftHistoryModal" class="modal">
             <h3>ギフト履歴 - <span id="giftHistoryUser"></span></h3>
@@ -973,36 +1037,7 @@
             <div id="giftHistoryList" style="max-height:400px; overflow-y:auto; margin-top:10px;"></div>
         </div>
 
-        <!-- 高額ギフト表示エリア -->
-        <div id="highValueGiftContainer"></div>
 
-        <!-- 高額ギフト情報ポップアップ -->
-        <div id="highValuePopup" class="high-value-popup">
-            <span class="high-value-popup-close"
-                onclick="document.getElementById('highValuePopup').classList.remove('show')">×</span>
-            <div class="high-value-popup-header">
-                <img id="popupAvatar" src="" alt="avatar">
-                <div id="popupUserName" class="high-value-popup-user"></div>
-            </div>
-            <div class="high-value-popup-content">
-                <div class="high-value-popup-row">
-                    <span class="high-value-popup-label">ギフト:</span>
-                    <span id="popupGiftName" class="high-value-popup-value"></span>
-                </div>
-                <div class="high-value-popup-row">
-                    <span class="high-value-popup-label">累積個数:</span>
-                    <span id="popupTotalCount" class="high-value-popup-value"></span>
-                </div>
-                <div class="high-value-popup-row">
-                    <span class="high-value-popup-label">基本金額:</span>
-                    <span id="popupBasePrice" class="high-value-popup-value"></span>
-                </div>
-                <div class="high-value-popup-row">
-                    <span class="high-value-popup-label">累積ポイント:</span>
-                    <span id="popupTotalPoints" class="high-value-popup-value"></span>
-                </div>
-            </div>
-        </div>
 
         <div class="column">
             <div class="sticky-header">
@@ -1011,12 +1046,16 @@
             <div id="freeStar"></div>
         </div>
 
+        <div class="col-resizer"></div>
+
         <div class="column">
             <div class="sticky-header">
                 <h2>無料ギフト（その他）</h2>
             </div>
             <div id="freeOther"></div>
         </div>
+
+        <div class="col-resizer"></div>
 
         <div class="column">
             <div class="sticky-header">
@@ -1026,6 +1065,39 @@
         </div>
     </div>
 
+
+    <div id="resizer"></div>
+
+    <!-- 高額ギフト表示エリア -->
+    <div id="highValueGiftContainer"></div>
+
+    <!-- 高額ギフト情報ポップアップ -->
+    <div id="highValuePopup" class="high-value-popup">
+        <span class="high-value-popup-close"
+            onclick="document.getElementById('highValuePopup').classList.remove('show')">×</span>
+        <div class="high-value-popup-header">
+            <img id="popupAvatar" src="" alt="avatar">
+            <div id="popupUserName" class="high-value-popup-user"></div>
+        </div>
+        <div class="high-value-popup-content">
+            <div class="high-value-popup-row">
+                <span class="high-value-popup-label">ギフト:</span>
+                <span id="popupGiftName" class="high-value-popup-value"></span>
+            </div>
+            <div class="high-value-popup-row">
+                <span class="high-value-popup-label">累積個数:</span>
+                <span id="popupTotalCount" class="high-value-popup-value"></span>
+            </div>
+            <div class="high-value-popup-row">
+                <span class="high-value-popup-label">基本金額:</span>
+                <span id="popupBasePrice" class="high-value-popup-value"></span>
+            </div>
+            <div class="high-value-popup-row">
+                <span class="high-value-popup-label">累積ポイント:</span>
+                <span id="popupTotalPoints" class="high-value-popup-value"></span>
+            </div>
+        </div>
+    </div>
 
     <script>
         let broadcastKey = null;
@@ -2567,6 +2639,84 @@
 
         // 初期ルーム
         connectRoom(490133);
+        // リサイズ機能
+        const resizer = document.getElementById("resizer");
+        const bottomPanel = document.getElementById("highValueGiftContainer");
+        const container = document.querySelector(".container");
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+
+        resizer.addEventListener("mousedown", (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = parseInt(document.defaultView.getComputedStyle(bottomPanel).height, 10);
+            document.body.style.cursor = "row-resize";
+            document.body.style.userSelect = "none"; // ドラッグ中のテキスト選択防止
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isResizing) return;
+            const dy = startY - e.clientY; // 上にドラッグすると高さが増える
+            const newHeight = startHeight + dy;
+
+            // 最小・最大高さの制限
+            if (newHeight > 50 && newHeight < window.innerHeight - 150) {
+                bottomPanel.style.height = `${newHeight}px`;
+            }
+        });
+
+        document.addEventListener("mouseup", () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = "";
+                document.body.style.userSelect = "";
+            }
+        });
+
+        // カラムリサイズ機能
+        document.querySelectorAll('.col-resizer').forEach(resizer => {
+            resizer.addEventListener('mousedown', (e) => {
+                let leftCol = resizer.previousElementSibling;
+                while (leftCol && !leftCol.classList.contains('column')) {
+                    leftCol = leftCol.previousElementSibling;
+                }
+
+                let rightCol = resizer.nextElementSibling;
+                while (rightCol && !rightCol.classList.contains('column')) {
+                    rightCol = rightCol.nextElementSibling;
+                }
+
+                // モーダルなどが間にある場合の対策（念のため）
+                if (!leftCol || !rightCol) return;
+
+                const startX = e.clientX;
+                const startLeftWidth = leftCol.getBoundingClientRect().width;
+                const startRightWidth = rightCol.getBoundingClientRect().width;
+
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+
+                const onMouseMove = (e) => {
+                    const dx = e.clientX - startX;
+                    // 最小幅チェック (50px)
+                    if (startLeftWidth + dx > 50 && startRightWidth - dx > 50) {
+                        leftCol.style.flex = `0 0 ${startLeftWidth + dx}px`;
+                        rightCol.style.flex = `0 0 ${startRightWidth - dx}px`;
+                    }
+                };
+
+                const onMouseUp = () => {
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
     </script>
 </body>
 
