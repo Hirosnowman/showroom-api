@@ -1,0 +1,237 @@
+
+// ===============================
+// server.js（Node22 + ESM / Render 配信用）
+// ===============================
+import express from "express";
+import fetch from "node-fetch";
+import path from "path";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
+import { WebSocketServer } from "ws";
+import WebSocket from "ws";
+
+// ESM の __dirname 再現
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// -------------------------------
+// public フォルダ配信
+// -------------------------------
+app.use(express.static(path.join(__dirname, "public")));
+
+// デフォルト HTML
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public/sr_live.html"));
+});
+
+// ===============================
+// ① broadcast_key 取得 API
+// ===============================
+app.get("/get_broadcast_key", async (req, res) => {
+    const roomId = req.query.room_id;
+    if (!roomId) return res.status(400).json({ error: "room_id required" });
+
+    try {
+        const apiUrl = `https://www.showroom-live.com/api/live/live_info?room_id=${roomId}`;
+        const r = await fetch(apiUrl);
+        const json = await r.json();
+
+        if (json.bcsvr_key) res.json({ broadcast_key: json.bcsvr_key });
+        else res.status(404).json({ error: "broadcast_key not found" });
+    } catch (err) {
+        res.status(500).json({ error: err.toString() });
+    }
+});
+
+// ===============================
+// ② 過去コメント取得 API (/comment_log)
+// ===============================
+app.get("/comment_log", (req, res) => {
+    const roomId = (req.query.room_id || "").trim();
+    if (!roomId) return res.status(400).json({ error: "room_id required" });
+
+    const pythonProcess = spawn('python', ['fetch_comment_log.py', roomId]);
+
+    let dataString = '';
+    let errorString = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        dataString += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        errorString += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+            console.error(`Python script exited with code ${code}: ${errorString}`);
+            return res.status(500).json({ error: "Python script failed", details: errorString });
+        }
+
+        try {
+            const json = JSON.parse(dataString);
+            if (json.error) {
+                if (json.error.includes("HTTP 404")) {
+                    return res.status(404).json(json);
+                }
+                return res.status(500).json(json);
+            }
+            res.json(json);
+        } catch (e) {
+            console.error("Failed to parse Python output:", e, dataString);
+            res.status(500).json({ error: "Invalid JSON from Python script", details: e.toString() });
+        }
+    });
+});
+
+// ===============================
+// ③ ルームプロフィール取得 API (/room_profile)
+// ===============================
+app.get("/room_profile", async (req, res) => {
+    const roomId = req.query.room_id;
+    if (!roomId) return res.status(400).json({ error: "room_id required" });
+
+    try {
+        const url = `https://www.showroom-live.com/api/room/profile?room_id=${roomId}`;
+        const r = await fetch(url);
+        const json = await r.json();
+
+        const responseData = {};
+        if (json.current_live_started_at) {
+            responseData.current_live_started_at = json.current_live_started_at;
+        }
+        if (json.room_name) {
+            responseData.room_name = json.room_name;
+        }
+
+        if (Object.keys(responseData).length > 0) {
+            res.json(responseData);
+        } else {
+            res.status(404).json({ error: "data not found" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.toString() });
+    }
+});
+
+app.get("/gift_list", async (req, res) => {
+    const roomId = (req.query.room_id || "").trim();
+    if (!roomId) return res.status(400).json({ error: "room_id required" });
+
+    try {
+        const url = `https://www.showroom-live.com/api/live/gift_list?room_id=${roomId}`;
+        console.log(`[Proxy] Fetching gift_list: ${url}`);
+        const r = await fetch(url);
+        console.log(`[Proxy] gift_list response: ${r.status}`);
+        const json = await r.json();
+        res.json(json);
+    } catch (e) {
+        console.error(`[Proxy] gift_list error:`, e);
+        res.status(500).json({ error: e.toString() });
+    }
+});
+
+
+
+// ===============================
+// HTTP Server 起動
+// ===============================
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+// ===============================
+// WebSocket Relay（Browser → Node → Showroom）
+// ===============================
+const wss = new WebSocketServer({ server, path: "/ws" });
+
+let showroomWS = null;
+let lastKey = null;
+let reconnectTimer = null;
+
+// ===============================
+// ③ Showroom WS 接続
+// ===============================
+function connectShowroomWS(broadcastKey) {
+    if (!broadcastKey) return;
+
+    if (showroomWS) {
+        try { showroomWS.close(); } catch { }
+    }
+
+    const url = `wss://bcsv-showroom1.showroom-cdn.com/?bcsvr_key=${broadcastKey}`;
+    console.log("Connecting to Showroom WS:", url);
+
+    showroomWS = new WebSocket(url);
+
+    showroomWS.on("open", () => {
+        console.log("Showroom WS connected");
+        clearTimeout(reconnectTimer);
+    });
+
+    // Showroom → Browser 全転送
+    showroomWS.on("message", (msg) => {
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(msg.toString());
+            }
+        });
+    });
+
+    // 切断 → 3秒後に再接続
+    showroomWS.on("close", () => {
+        console.log("Showroom WS closed → reconnecting...");
+        reconnectTimer = setTimeout(() => connectShowroomWS(lastKey), 3000);
+    });
+
+    showroomWS.on("error", (err) => {
+        console.log("Showroom WS Error:", err);
+    });
+}
+
+// ===============================
+// ④ Showroom Heartbeat（PING）
+// ===============================
+setInterval(() => {
+    if (showroomWS && showroomWS.readyState === WebSocket.OPEN) {
+        try {
+            showroomWS.send("PING");
+        } catch (e) {
+            console.log("PING error:", e.toString());
+        }
+    }
+}, 10000);
+
+// ===============================
+// ⑤ ブラウザ Heartbeat（Node → Browser）
+// ===============================
+setInterval(() => {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ hb: Date.now() }));
+        }
+    });
+}, 10000);
+
+// ===============================
+// ⑥ ブラウザ WS 接続処理
+// ===============================
+wss.on("connection", (socket) => {
+    console.log("Browser connected");
+
+    socket.on("message", (msg) => {
+        try {
+            const data = JSON.parse(msg);
+            if (data.broadcast_key) {
+                lastKey = data.broadcast_key;
+                connectShowroomWS(lastKey);
+            }
+        } catch (e) {
+            console.log("Browser msg parse error:", e);
+        }
+    });
+});
