@@ -1433,6 +1433,35 @@
 
         // コメント表示
         function showComment(c) {
+            // "m" プロパティがある場合は特別表示（オレンジ色、アバターなし）
+            if (c.m) {
+                const div = document.createElement("div");
+                div.style.display = "flex";
+                div.style.alignItems = "flex-start";
+                div.style.marginBottom = "5px";
+                div.style.background = "#fff3e0"; // オレンジ系の背景
+                div.style.padding = "5px 10px";
+                div.style.borderRadius = "5px";
+                div.style.boxShadow = "1px 1px 3px #aaa";
+                div.style.borderLeft = "4px solid #ff9800"; // オレンジの左ボーダー
+
+                const textP = document.createElement("p");
+                textP.style.margin = "0";
+                textP.style.color = "#ff9800"; // オレンジ色のテキスト
+                textP.style.fontWeight = "bold";
+                textP.textContent = c.m;
+
+                div.appendChild(textP);
+
+                // 重複チェック用にコメントを記録
+                const commentHash = `${c.u}_${c.m}_${c.created_at || Date.now()}`;
+                receivedComments.add(commentHash);
+
+                document.getElementById("comment").prepend(div);
+                return;
+            }
+
+            // 通常のコメント表示
             const div = document.createElement("div");
             div.style.display = "flex";
             div.style.alignItems = "flex-start";   // 上揃え
