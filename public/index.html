@@ -579,11 +579,15 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             z-index: 10000;
             min-width: 250px;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
             display: none;
+            flex-direction: column;
         }
 
         .high-value-popup.show {
-            display: block;
+            display: flex;
         }
 
         .high-value-popup-header {
@@ -593,6 +597,7 @@
             margin-bottom: 10px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eee;
+            flex-shrink: 0;
         }
 
         .high-value-popup-header img {
@@ -610,6 +615,9 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            overflow-y: auto;
+            max-height: calc(80vh - 120px);
+            padding-right: 5px;
         }
 
         .high-value-popup-row {
@@ -1106,11 +1114,8 @@
         let hbInterval = null;
         let reconnectTimeout = null;
 
-        // 高額ギフト累積ポイント追跡 { userId_giftId: totalPoints }
-        const highValueGiftPoints = {};
-
-        // 高額ギフト累積個数追跡 { userId_giftId: totalCount }
-        const highValueGiftCounts = {};
+        // 高額ギフトユーザー集計 { userId: { totalPoints, totalCount, bestGift: {id, point, name}, gifts: { giftId: count } } }
+        const userHighValueData = {};
 
         // アラーム用
         let alarmTime = null; // "HH:MM" string
@@ -1388,6 +1393,14 @@
             setTimeout(() => {
                 showGift({ ...selectedTestUser, g: 3000752, n: 1, created_at: now, gt: 2 });
             }, 600);
+
+            // 無料ギフトその他 追加テストギフト ×10個ずつ
+            const freeGiftIds = [3000669, 3000670, 3000671, 3000672, 3000673, 3000841, 3000842, 3000843, 3000844, 3000845];
+            freeGiftIds.forEach((giftId, index) => {
+                setTimeout(() => {
+                    showGift({ ...selectedTestUser, g: giftId, n: 10, created_at: now, gt: 2 });
+                }, 700 + (index * 100));
+            });
         };
 
         // 個別テストギフトボタン
@@ -2231,174 +2244,226 @@
             // ギフト情報を取得（なければデフォルト作成）
             let giftInfo = giftMasterData[giftId];
             if (!giftInfo) {
-                // 未知のギフトの場合のデフォルト値
-                // 基本的に有料ギフト扱いとし、ポイントは不明なので仮に1Gとするか、
-                // あるいは無料ギフトとして扱うか。安全側に倒して「無料ギフト扱い・1pt」とするか、
-                // 逆に「有料ギフト扱い・1G」とするか。
-                // ここでは「無料ギフト（その他）・1pt」として扱い、高額判定には引っかかりにくくする
                 giftInfo = {
                     name: `Unknown Gift (${giftId})`,
                     free: true,
                     point: 1
                 };
-                // もし有料ギフトだと判明している場合は point を調整するロジックが必要だが、
-                // WebSocketの情報だけでは判別できないため、一旦これで進める。
-                // ※実際の運用では新しいギフトIDを随時追加する必要がある
             }
 
             // 1回の投稿のポイント計算
             const pointsThisGift = calculateGiftPoints(giftId, count, giftInfo.free, giftInfo.point);
 
-            // 累積ポイントを追跡
-            const key = `${userId}_${giftId}`;
-            if (!highValueGiftPoints[key]) {
-                highValueGiftPoints[key] = 0;
+            // ユーザーごとの集計データを初期化
+            if (!userHighValueData[userId]) {
+                userHighValueData[userId] = {
+                    totalPoints: 0,
+                    totalCount: 0, // 全ギフトの合計個数
+                    bestGift: { id: 0, point: -1, name: "" },
+                    gifts: {} // giftId: { count: 0, points: 0, info: ... }
+                };
             }
-            highValueGiftPoints[key] += pointsThisGift;
 
-            // 累積個数を追跡
-            if (!highValueGiftCounts[key]) {
-                highValueGiftCounts[key] = 0;
+            const userData = userHighValueData[userId];
+            userData.totalPoints += pointsThisGift;
+            userData.totalCount += count;
+
+            // ギフトごとの集計
+            if (!userData.gifts[giftId]) {
+                userData.gifts[giftId] = {
+                    count: 0,
+                    points: 0,
+                    info: giftInfo
+                };
             }
-            highValueGiftCounts[key] += count;
+            userData.gifts[giftId].count += count;
+            userData.gifts[giftId].points += pointsThisGift;
 
-            const cumulativePoints = highValueGiftPoints[key];
-            const cumulativeCount = highValueGiftCounts[key];
+            // 最高単価ギフトの更新チェック
+            // 既存のbestGiftより単価が高い、または同じで未設定の場合
+            if (giftInfo.point > userData.bestGift.point) {
+                userData.bestGift = {
+                    id: giftId,
+                    point: giftInfo.point,
+                    name: giftInfo.name,
+                    free: giftInfo.free
+                };
+            }
 
-            let shouldDisplay = false;
+            // 表示閾値チェック (10000pt以上)
+            if (userData.totalPoints >= 10000) {
+                updateHighValueDisplay(userId, userName, avatarId, userData);
+            }
+        }
 
-            if (!giftInfo.free) {
-                // 有料ギフト: 累積10000G以上
-                if (cumulativePoints >= 10000) {
-                    shouldDisplay = true;
+        function updateHighValueDisplay(userId, userName, avatarId, userData) {
+            const container = document.getElementById("highValueGiftContainer");
+            const itemId = `high-value-${userId}`;
+            let itemDiv = document.getElementById(itemId);
+
+            // 表示内容の構築
+            const bestGiftId = userData.bestGift.id;
+            const totalPoints = userData.totalPoints;
+
+            // 枠の色判定
+            let borderClass = "silver";
+            if (totalPoints >= 30000) {
+                borderClass = "gold";
+            }
+
+            if (itemDiv) {
+                // 既存更新
+                itemDiv.className = `high-value-gift-item ${borderClass}`;
+
+                // 画像更新（最高単価ギフトが変わった場合など）
+                const giftImg = itemDiv.querySelector("img.gift");
+                if (giftImg.src.indexOf(`${bestGiftId}_s.png`) === -1) {
+                    giftImg.src = `https://static.showroom-live.com/image/gift/${bestGiftId}_s.png?v=7`;
+                    giftImg.title = userData.bestGift.name;
                 }
+
+                // ポイント更新
+                const countSpan = itemDiv.querySelector(".count");
+                countSpan.textContent = `${Math.floor(totalPoints).toLocaleString()}pt`;
+
+                // アニメーション再開
+                itemDiv.classList.remove("high-value-gift-item");
+                void itemDiv.offsetWidth;
+                itemDiv.classList.add("high-value-gift-item");
+
+                // 一番上に移動（最新のアクションがあった人を右端へ）
+                container.appendChild(itemDiv);
+
             } else {
-                // 無料ギフト
-                // 星（ID: 3000421, 800094）以外の場合
-                const isStar = (giftId === 3000421 || giftId === 800094);
-                if (!isStar) {
-                    // 無料ギフト（その他）: 累積10000pt以上
-                    if (cumulativePoints >= 10000) {
-                        shouldDisplay = true;
-                    }
-                }
+                // 新規作成
+                itemDiv = document.createElement("div");
+                itemDiv.id = itemId;
+                itemDiv.className = `high-value-gift-item ${borderClass}`;
+
+                const avatarImg = document.createElement("img");
+                avatarImg.className = "avatar";
+                avatarImg.src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png`;
+                avatarImg.title = userName;
+
+                const giftImg = document.createElement("img");
+                giftImg.className = "gift";
+                giftImg.src = `https://static.showroom-live.com/image/gift/${bestGiftId}_s.png?v=7`;
+                giftImg.title = userData.bestGift.name;
+
+                const topDiv = document.createElement("div");
+                topDiv.className = "high-value-gift-top";
+                topDiv.appendChild(avatarImg);
+                topDiv.appendChild(giftImg);
+
+                const countSpan = document.createElement("span");
+                countSpan.className = "count";
+                countSpan.textContent = `${Math.floor(totalPoints).toLocaleString()}pt`;
+
+                itemDiv.appendChild(topDiv);
+                itemDiv.appendChild(countSpan);
+
+                // クリックイベント
+                itemDiv.style.cursor = "pointer";
+                itemDiv.onclick = (e) => {
+                    showHighValuePopup(e, userId, userName, avatarId, userData);
+                };
+
+                container.appendChild(itemDiv);
             }
+        }
 
-            // 表示対象の場合のみ処理
-            if (shouldDisplay) {
-                const container = document.getElementById("highValueGiftContainer");
-                const itemId = `high-value-${userId}-${giftId}`;
-                let itemDiv = document.getElementById(itemId);
+        function showHighValuePopup(e, userId, userName, avatarId, userData) {
+            const popup = document.getElementById("highValuePopup");
 
-                if (itemDiv) {
-                    // 既存の要素を更新（累積ポイント表示）
-                    const countSpan = itemDiv.querySelector(".count");
-                    countSpan.textContent = `${Math.floor(cumulativePoints).toLocaleString()}pt`;
+            // ヘッダー情報
+            document.getElementById("popupAvatar").src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png`;
+            document.getElementById("popupUserName").textContent = userName;
 
-                    // 枠の色を更新
-                    itemDiv.classList.remove("silver", "gold");
-                    if (cumulativePoints >= 30000) {
-                        itemDiv.classList.add("gold");
-                    } else if (cumulativePoints >= 10000) {
-                        itemDiv.classList.add("silver");
-                    }
+            // コンテンツエリアのクリアと再構築
+            const contentDiv = popup.querySelector(".high-value-popup-content");
+            contentDiv.innerHTML = "";
 
-                    // アニメーション再生のためにクラスを付け外し
-                    itemDiv.classList.remove("high-value-gift-item");
-                    void itemDiv.offsetWidth; // リフロー強制
-                    itemDiv.classList.add("high-value-gift-item");
+            // 累計ポイント（一番上）
+            const totalRow = document.createElement("div");
+            totalRow.className = "high-value-popup-row";
+            totalRow.style.borderBottom = "2px solid #eee";
+            totalRow.style.marginBottom = "10px";
+            totalRow.style.paddingBottom = "5px";
 
-                    // 表示順を一番下に（最新にする）
-                    container.appendChild(itemDiv);
-                } else {
-                    // 新規作成
-                    itemDiv = document.createElement("div");
-                    itemDiv.id = itemId;
-                    itemDiv.className = "high-value-gift-item";
+            const totalLabel = document.createElement("span");
+            totalLabel.className = "high-value-popup-label";
+            totalLabel.textContent = "累計ポイント:";
 
-                    // 枠の色を設定
-                    if (cumulativePoints >= 30000) {
-                        itemDiv.classList.add("gold");
-                    } else if (cumulativePoints >= 10000) {
-                        itemDiv.classList.add("silver");
-                    }
+            const totalValue = document.createElement("span");
+            totalValue.className = "high-value-popup-value";
+            totalValue.style.fontSize = "1.2em";
+            totalValue.style.color = "#d00";
+            totalValue.textContent = `${Math.floor(userData.totalPoints).toLocaleString()}pt`;
 
-                    const avatarImg = document.createElement("img");
-                    avatarImg.className = "avatar";
-                    avatarImg.src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png`;
-                    avatarImg.title = userName; // ユーザー名をツールチップに
+            totalRow.appendChild(totalLabel);
+            totalRow.appendChild(totalValue);
+            contentDiv.appendChild(totalRow);
 
-                    const giftImg = document.createElement("img");
-                    giftImg.className = "gift";
-                    giftImg.src = `https://static.showroom-live.com/image/gift/${giftId}_s.png?v=7`;
-                    // ギフト名をツールチップに
-                    const giftName = giftInfo.name || `ギフトID:${giftId}`;
-                    giftImg.title = giftName;
+            // ギフト一覧（縦に並べる）
+            // userData.gifts をループ
+            Object.keys(userData.gifts).forEach(giftId => {
+                const giftData = userData.gifts[giftId];
 
-                    // 上段：アバターとギフトアイコン
-                    const topDiv = document.createElement("div");
-                    topDiv.className = "high-value-gift-top";
-                    topDiv.appendChild(avatarImg);
-                    topDiv.appendChild(giftImg);
+                const row = document.createElement("div");
+                row.className = "high-value-popup-row";
+                row.style.justifyContent = "flex-start"; // 左寄せ
+                row.style.marginBottom = "5px";
 
-                    // 下段：ポイント数
-                    const countSpan = document.createElement("span");
-                    countSpan.className = "count";
-                    countSpan.textContent = `${Math.floor(cumulativePoints).toLocaleString()}pt`;
+                const img = document.createElement("img");
+                img.src = `https://static.showroom-live.com/image/gift/${giftId}_s.png?v=7`;
+                img.style.width = "30px";
+                img.style.height = "30px";
+                img.style.marginRight = "10px";
 
-                    itemDiv.appendChild(topDiv);
-                    itemDiv.appendChild(countSpan);
+                // ギフト価格表示（有料ギフトはG、無料ギフトはpt）
+                const priceText = document.createElement("span");
+                priceText.style.fontSize = "0.9em";
+                priceText.style.color = "#666";
+                priceText.style.marginRight = "5px";
+                const unit = giftData.info.free ? "pt" : "G";
+                priceText.textContent = `(${giftData.info.point.toLocaleString()}${unit})`;
 
-                    // クリックでポップアップ表示
-                    itemDiv.style.cursor = "pointer";
-                    itemDiv.onclick = (e) => {
-                        const popup = document.getElementById("highValuePopup");
+                const countText = document.createElement("span");
+                countText.style.fontWeight = "bold";
+                countText.textContent = `× ${giftData.count.toLocaleString()}`;
 
-                        // ポップアップの内容を設定
-                        document.getElementById("popupAvatar").src = `https://image.showroom-cdn.com/showroom-prod/image/avatar/${avatarId}.png`;
-                        document.getElementById("popupUserName").textContent = userName;
-                        document.getElementById("popupGiftName").textContent = giftName;
-                        document.getElementById("popupTotalCount").textContent = `${cumulativeCount.toLocaleString()}個`;
+                const nameText = document.createElement("span");
+                nameText.style.fontSize = "0.8em";
+                nameText.style.color = "#666";
+                nameText.style.marginLeft = "10px";
+                nameText.textContent = `(${giftData.info.name})`;
 
-                        const unit = giftInfo.free ? "pt" : "G";
-                        document.getElementById("popupBasePrice").textContent = `${giftInfo.point.toLocaleString()}${unit}`;
-                        document.getElementById("popupTotalPoints").textContent = `${Math.floor(cumulativePoints).toLocaleString()}pt`;
+                row.appendChild(img);
+                row.appendChild(priceText);
+                row.appendChild(countText);
+                row.appendChild(nameText);
 
-                        // ポップアップを一旦表示して、サイズを取得
-                        popup.classList.add("show");
-                        const popupRect = popup.getBoundingClientRect();
+                contentDiv.appendChild(row);
+            });
 
-                        // ポップアップの位置を計算（クリック位置の近く）
-                        let left = e.clientX + 10;
-                        let top = e.clientY + 10;
+            // ポップアップ表示位置計算
+            popup.classList.add("show");
+            const popupRect = popup.getBoundingClientRect();
 
-                        // 右端からはみ出す場合は左側に表示
-                        if (left + popupRect.width > window.innerWidth) {
-                            left = e.clientX - popupRect.width - 10;
-                        }
+            let left = e.clientX + 10;
+            let top = e.clientY + 10;
 
-                        // 下端からはみ出す場合は上側に表示
-                        if (top + popupRect.height > window.innerHeight) {
-                            top = e.clientY - popupRect.height - 10;
-                        }
-
-                        // 左端からはみ出さないように
-                        if (left < 0) {
-                            left = 10;
-                        }
-
-                        // 上端からはみ出さないように
-                        if (top < 0) {
-                            top = 10;
-                        }
-
-                        popup.style.left = `${left}px`;
-                        popup.style.top = `${top}px`;
-                    };
-
-                    container.appendChild(itemDiv);
-                }
+            if (left + popupRect.width > window.innerWidth) {
+                left = e.clientX - popupRect.width - 10;
             }
+            if (top + popupRect.height > window.innerHeight) {
+                top = e.clientY - popupRect.height - 10;
+            }
+            if (left < 0) left = 10;
+            if (top < 0) top = 10;
+
+            popup.style.left = `${left}px`;
+            popup.style.top = `${top}px`;
         }
 
         // ステータス更新
