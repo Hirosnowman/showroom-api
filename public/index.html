@@ -231,9 +231,11 @@
             background: #fff;
             border: 1px solid #ccc;
             padding: 0;
-            z-index: 1000;
+            z-index: 99999 !important;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         #settingsPanel div {
@@ -778,6 +780,158 @@
 <body>
 
     <div id="overlay"></div>
+
+    <!-- 設定パネル（bodyの直下に配置） -->
+    <div id="settingsPanel"
+        style="top: 50%; left: 50%; transform: translate(-50%, -50%); position: fixed; margin: 0; min-width: 300px; z-index: 99999 !important;">
+        <div id="settingsHeader"
+            style="background: #eee; padding: 5px 10px; cursor: move; border-bottom: 1px solid #ccc; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: bold;">設定</span>
+            <button id="closeSettings"
+                style="border: none; background: none; cursor: pointer; font-size: 1.2em;">✕</button>
+        </div>
+        <div style="padding: 15px;">
+            <div><strong>コメント:</strong> 文字サイズ <input type="number" id="commentFontSize" value="14" min="10" max="30"> px
+                色 <input type="color" id="commentColor" value="#000000"></div>
+            <div style="margin-top: 10px;"><label><input type="checkbox" id="testModeCheckbox">
+                    テストモード（通信停止ボタン表示）</label></div>
+
+            <!-- テスト機能ボタン（テストモード時のみ表示） -->
+            <div id="testButtons"
+                style="margin-top: 10px; display: none; border-top: 1px solid #eee; padding-top: 10px;">
+                <div style="margin-bottom:5px;">
+                    <button id="testCommentBtn" style="width:100%; margin-bottom:5px;">テストコメント</button>
+                    <button id="testGiftBtn" style="width:100%;">テストギフト（一括）</button>
+                </div>
+
+                <!-- テストユーザー選択 -->
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <div style="font-size: 0.9em; margin-bottom: 5px; font-weight: bold;">テストユーザー選択:</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+                        <button class="test-user-btn" data-user-id="1001" data-user-name="テストA"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">A</button>
+                        <button class="test-user-btn" data-user-id="1002" data-user-name="テストB"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">B</button>
+                        <button class="test-user-btn" data-user-id="1003" data-user-name="テストC"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">C</button>
+                        <button class="test-user-btn" data-user-id="1004" data-user-name="テストD"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">D</button>
+                        <button class="test-user-btn" data-user-id="1005" data-user-name="テストE"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">E</button>
+                        <button class="test-user-btn" data-user-id="1006" data-user-name="テストF"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">F</button>
+                    </div>
+                </div>
+
+                <!-- 個数選択ボタン -->
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <div style="font-size: 0.9em; margin-bottom: 5px; font-weight: bold;">個数選択:</div>
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;">
+                        <button class="test-count-btn" data-count="1"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×1</button>
+                        <button class="test-count-btn" data-count="2"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×2</button>
+                        <button class="test-count-btn" data-count="3"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×3</button>
+                        <button class="test-count-btn" data-count="4"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×4</button>
+                        <button class="test-count-btn" data-count="5"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×5</button>
+                        <button class="test-count-btn" data-count="6"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×6</button>
+                        <button class="test-count-btn" data-count="7"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×7</button>
+                        <button class="test-count-btn" data-count="8"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×8</button>
+                        <button class="test-count-btn" data-count="9"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×9</button>
+                        <button class="test-count-btn" data-count="10"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×10</button>
+                        <button class="test-count-btn" data-count="100"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×100</button>
+                        <button class="test-count-btn" data-count="1000"
+                            style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">×1000</button>
+                    </div>
+                </div>
+
+                <!-- テストギフトアイコン -->
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <div style="font-size: 0.9em; margin-bottom: 5px; font-weight: bold;">テストギフト:</div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">
+                        <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3000421" data-type="2" title="無料ギフト(星)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3000844" data-type="2" title="無料ギフト(その他)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7" class="test-gift-icon-new"
+                            data-id="3" data-type="1" title="有料ギフト(3)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
+                            class="test-gift-icon-new" data-id="800003" data-type="1" title="有料ギフト(800003)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7" class="test-gift-icon-new"
+                            data-id="21" data-type="1" title="有料ギフト(21)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3000349" data-type="1" title="有料ギフト(3000349)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/1601_s.png?v=7" class="test-gift-icon-new"
+                            data-id="1601" data-type="2" title="ギフトID 1601"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3000752" data-type="2" title="無料ギフト(3000752)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/800093_s.png?v=7"
+                            class="test-gift-icon-new" data-id="800093" data-type="2" title="ギフトID 800093"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/18_s.png?v=7" class="test-gift-icon-new"
+                            data-id="18" data-type="1" title="有料ギフト(18)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/800072_s.png?v=7"
+                            class="test-gift-icon-new" data-id="800072" data-type="1" title="有料ギフト(800072)"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001128_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001128" data-type="2" title="ギフトID 3001128"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001129_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001129" data-type="2" title="ギフトID 3001129"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001130_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001130" data-type="2" title="ギフトID 3001130"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001131_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001131" data-type="2" title="ギフトID 3001131"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001132_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001132" data-type="2" title="ギフトID 3001132"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001133_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001133" data-type="2" title="ギフトID 3001133"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001134_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001134" data-type="2" title="ギフトID 3001134"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001135_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001135" data-type="2" title="ギフトID 3001135"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001136_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001136" data-type="2" title="ギフトID 3001136"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001137_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001137" data-type="2" title="ギフトID 3001137"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                        <img src="https://static.showroom-live.com/image/gift/3001138_s.png?v=7"
+                            class="test-gift-icon-new" data-id="3001138" data-type="2" title="ギフトID 3001138"
+                            style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button id="applyDisplaySettings">適用</button>
+            </div>
+        </div>
+    </div>
     <div id="alarmModal">
         <h3>アラーム設定</h3>
         <input type="text" id="alarmTimeInput" placeholder="--:--" readonly>
@@ -851,186 +1005,6 @@
                 <div style="display:flex; gap:5px;">
                     <button id="scrollTopBtn" style="font-size:0.8em; cursor:pointer;">先頭へ</button>
                     <button id="toggleSettings" style="font-size:0.8em; cursor:pointer;">設定</button>
-                </div>
-
-                <div id="settingsPanel"
-                    style="top: 50%; left: 50%; transform: translate(-50%, -50%); position: fixed; margin: 0; min-width: 300px;">
-                    <div id="settingsHeader"
-                        style="background: #eee; padding: 5px 10px; cursor: move; border-bottom: 1px solid #ccc; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: bold;">設定</span>
-                        <button id="closeSettings"
-                            style="border: none; background: none; cursor: pointer; font-size: 1.2em;">✕</button>
-                    </div>
-                    <div style="padding: 15px;">
-                        <div><strong>コメント:</strong> 文字サイズ <input type="number" id="commentFontSize" value="14" min="10"
-                                max="30"> px
-                            色 <input type="color" id="commentColor" value="#000000"></div>
-                        <div style="margin-top: 10px;"><label><input type="checkbox" id="testModeCheckbox">
-                                テストモード（通信停止ボタン表示）</label></div>
-
-                        <!-- テスト機能ボタン（テストモード時のみ表示） -->
-                        <div id="testButtons"
-                            style="margin-top: 10px; display: none; border-top: 1px solid #eee; padding-top: 10px;">
-                            <div style="margin-bottom:5px;">
-                                <button id="testCommentBtn" style="width:100%; margin-bottom:5px;">テストコメント</button>
-                                <button id="testGiftBtn" style="width:100%;">テストギフト（一括）</button>
-                            </div>
-
-                            <!-- テストユーザー選択 -->
-                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                                <div style="font-size: 0.9em; margin-bottom: 5px; font-weight: bold;">テストユーザー選択:</div>
-                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
-                                    <button class="test-user-btn" data-user-id="1001" data-user-name="テストA"
-                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">A</button>
-                                    <button class="test-user-btn" data-user-id="1002" data-user-name="テストB"
-                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">B</button>
-                                    <button class="test-user-btn" data-user-id="1003" data-user-name="テストC"
-                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">C</button>
-                                    <button class="test-user-btn" data-user-id="1004" data-user-name="テストD"
-                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">D</button>
-                                    <button class="test-user-btn" data-user-id="1005" data-user-name="テストE"
-                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">E</button>
-                                    <button class="test-user-btn" data-user-id="1006" data-user-name="テストF"
-                                        style="padding: 5px; font-size: 0.8em; cursor: pointer; border: 2px solid #ddd; border-radius: 4px; background: white;">F</button>
-                                </div>
-                            </div>
-
-                            <!-- ×1個ボタン行 -->
-                            <div
-                                style="display: flex; justify-content: space-between; margin-top: 5px; align-items: center;">
-                                <span style="font-size: 0.8em; width: 25px;">×1</span>
-                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000421" data-count="1" data-type="2"
-                                    title="無料ギフト(星) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000844" data-count="1" data-type="2"
-                                    title="無料ギフト(その他) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
-                                    class="test-gift-icon" data-id="3" data-count="1" data-type="1" title="有料ギフト(3) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
-                                    class="test-gift-icon" data-id="800003" data-count="1" data-type="1"
-                                    title="有料ギフト(800003) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
-                                    class="test-gift-icon" data-id="21" data-count="1" data-type="1"
-                                    title="有料ギフト(21) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000349" data-count="1" data-type="1"
-                                    title="有料ギフト(3000349) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000752" data-count="1" data-type="2"
-                                    title="無料ギフト(3000752) x1"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                            </div>
-                            <!-- ×10個ボタン行 -->
-                            <div
-                                style="display: flex; justify-content: space-between; margin-top: 3px; align-items: center;">
-                                <span style="font-size: 0.8em; width: 25px;">×10</span>
-                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000421" data-count="10" data-type="2"
-                                    title="無料ギフト(星) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000844" data-count="10" data-type="2"
-                                    title="無料ギフト(その他) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
-                                    class="test-gift-icon" data-id="3" data-count="10" data-type="1"
-                                    title="有料ギフト(3) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
-                                    class="test-gift-icon" data-id="800003" data-count="10" data-type="1"
-                                    title="有料ギフト(800003) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
-                                    class="test-gift-icon" data-id="21" data-count="10" data-type="1"
-                                    title="有料ギフト(21) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000349" data-count="10" data-type="1"
-                                    title="有料ギフト(3000349) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000752" data-count="10" data-type="2"
-                                    title="無料ギフト(3000752) x10"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                            </div>
-                            <!-- ×100個ボタン行 -->
-                            <div
-                                style="display: flex; justify-content: space-between; margin-top: 3px; align-items: center;">
-                                <span style="font-size: 0.8em; width: 25px;">×100</span>
-                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000421" data-count="100" data-type="2"
-                                    title="無料ギフト(星) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000844" data-count="100" data-type="2"
-                                    title="無料ギフト(その他) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
-                                    class="test-gift-icon" data-id="3" data-count="100" data-type="1"
-                                    title="有料ギフト(3) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
-                                    class="test-gift-icon" data-id="800003" data-count="100" data-type="1"
-                                    title="有料ギフト(800003) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
-                                    class="test-gift-icon" data-id="21" data-count="100" data-type="1"
-                                    title="有料ギフト(21) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000349" data-count="100" data-type="1"
-                                    title="有料ギフト(3000349) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000752" data-count="100" data-type="2"
-                                    title="無料ギフト(3000752) x100"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                            </div>
-                            <!-- ×1000個ボタン行 -->
-                            <div
-                                style="display: flex; justify-content: space-between; margin-top: 3px; align-items: center;">
-                                <span style="font-size: 0.8em; width: 25px;">×1000</span>
-                                <img src="https://static.showroom-live.com/image/gift/3000421_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000421" data-count="1000" data-type="2"
-                                    title="無料ギフト(星) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000844_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000844" data-count="1000" data-type="2"
-                                    title="無料ギフト(その他) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3_s.png?v=7"
-                                    class="test-gift-icon" data-id="3" data-count="1000" data-type="1"
-                                    title="有料ギフト(3) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/800003_s.png?v=7"
-                                    class="test-gift-icon" data-id="800003" data-count="1000" data-type="1"
-                                    title="有料ギフト(800003) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/21_s.png?v=7"
-                                    class="test-gift-icon" data-id="21" data-count="1000" data-type="1"
-                                    title="有料ギフト(21) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000349_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000349" data-count="1000" data-type="1"
-                                    title="有料ギフト(3000349) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                                <img src="https://static.showroom-live.com/image/gift/3000752_s.png?v=7"
-                                    class="test-gift-icon" data-id="3000752" data-count="1000" data-type="2"
-                                    title="無料ギフト(3000752) x1000"
-                                    style="width:30px; height:30px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">
-                            </div>
-                        </div>
-                        <div style="margin-top: 15px; text-align: right;">
-                            <button id="applyDisplaySettings">適用</button>
-                        </div>
-                    </div>
                 </div>
             </div>
             <div id="comment"></div>
@@ -1282,20 +1256,61 @@
         // 設定パネル表示
         const settingsPanel = document.getElementById("settingsPanel");
 
+        // 設定パネルの位置を画面内に調整する関数
+        function adjustSettingsPanelPosition() {
+            // transformが設定されている場合は何もしない（初期状態）
+            if (settingsPanel.style.transform && settingsPanel.style.transform !== "none") {
+                return;
+            }
+
+            const currentLeft = parseFloat(settingsPanel.style.left) || 0;
+            const currentTop = parseFloat(settingsPanel.style.top) || 0;
+            const panelWidth = settingsPanel.offsetWidth;
+            const panelHeight = settingsPanel.offsetHeight;
+
+            const maxLeft = window.innerWidth - panelWidth;
+            const maxTop = window.innerHeight - panelHeight;
+
+            let newLeft = Math.max(0, Math.min(currentLeft, maxLeft));
+            let newTop = Math.max(0, Math.min(currentTop, maxTop));
+
+            settingsPanel.style.left = `${newLeft}px`;
+            settingsPanel.style.top = `${newTop}px`;
+        }
+
         document.getElementById("toggleSettings").onclick = () => {
             if (settingsPanel.style.display === "none" || settingsPanel.style.display === "") {
+                // まず表示
                 settingsPanel.style.display = "block";
-                // 中央に表示（初回のみ、あるいは毎回リセットするかは要件次第だが、ドラッグ後は位置維持したいのでリセットしない）
-                // ただし、display:noneからblockになるときに位置がおかしくなる場合があるので、
-                // fixedで中央配置のCSSが効いているはず。
+
+                // リフローを強制
+                void settingsPanel.offsetHeight;
+
+                // パネルのサイズを取得
+                const panelWidth = settingsPanel.offsetWidth;
+                const panelHeight = settingsPanel.offsetHeight;
+
+                // 中央に配置（transformは使わない）
+                const centerLeft = Math.max(0, (window.innerWidth - panelWidth) / 2);
+                const centerTop = Math.max(0, (window.innerHeight - panelHeight) / 2);
+
+                settingsPanel.style.transform = "none";
+                settingsPanel.style.left = `${centerLeft}px`;
+                settingsPanel.style.top = `${centerTop}px`;
             } else {
                 settingsPanel.style.display = "none";
             }
         };
 
-        document.getElementById("closeSettings").onclick = () => {
+        document.getElementById("closeSettings").onclick = (e) => {
+            e.stopPropagation(); // イベントのバブリングを防ぐ
             settingsPanel.style.display = "none";
         };
+
+        // ✕ボタンのmousedownイベントでもバブリングを防ぐ
+        document.getElementById("closeSettings").addEventListener("mousedown", (e) => {
+            e.stopPropagation(); // ドラッグが開始されるのを防ぐ
+        });
 
         // 設定適用
         document.getElementById("applyDisplaySettings").onclick = () => {
@@ -1403,7 +1418,46 @@
             });
         };
 
-        // 個別テストギフトボタン
+        // 個数選択ボタンとギフトアイコンの新しいシステム
+        let selectedTestCount = 1; // デフォルトは×1
+
+        // 個数選択ボタンのイベントハンドラー
+        document.querySelectorAll(".test-count-btn").forEach(btn => {
+            btn.onclick = () => {
+                // 全てのボタンから選択状態を解除
+                document.querySelectorAll(".test-count-btn").forEach(b => {
+                    b.style.background = "white";
+                    b.style.borderColor = "#ddd";
+                    b.style.color = "#333";
+                    b.style.fontWeight = "normal";
+                });
+
+                // クリックされたボタンを選択状態に
+                btn.style.background = "#4CAF50";
+                btn.style.borderColor = "#4CAF50";
+                btn.style.color = "white";
+                btn.style.fontWeight = "bold";
+
+                // 選択された個数を保存
+                selectedTestCount = parseInt(btn.getAttribute("data-count"));
+            };
+        });
+
+        // 初期選択（×1）
+        document.querySelector(".test-count-btn[data-count='1']").click();
+
+        // 新しいギフトアイコンのイベントハンドラー
+        document.querySelectorAll(".test-gift-icon-new").forEach(icon => {
+            icon.onclick = () => {
+                const giftId = parseInt(icon.getAttribute("data-id"));
+                const type = parseInt(icon.getAttribute("data-type"));
+                const now = Math.floor(Date.now() / 1000);
+
+                showGift({ ...selectedTestUser, g: giftId, n: selectedTestCount, created_at: now, gt: type });
+            };
+        });
+
+        // 個別テストギフトボタン（古いシステム、互換性のため残す）
         document.querySelectorAll(".test-gift-icon").forEach(icon => {
             icon.onclick = () => {
                 const giftId = parseInt(icon.getAttribute("data-id"));
@@ -1731,6 +1785,24 @@
                     countSpan.className = "gift-history-count";
                     countSpan.textContent = `×${item.count}`;
 
+                    // ポイント計算
+                    const giftInfo = giftMasterData[item.giftId];
+                    if (giftInfo) {
+                        const points = calculateGiftPoints(item.giftId, item.count, giftInfo.free, giftInfo.point);
+                        totalPoints += points;
+
+                        // ギフト画像にツールチップを設定（名前と単体ポイント）
+                        const unit = giftInfo.free ? "pt" : "G";
+                        giftImg.title = `${giftInfo.name}\n${giftInfo.point}${unit}`;
+
+                        // 計算されたポイントを表示
+                        const pointSpan = document.createElement("span");
+                        pointSpan.style.color = "#666";
+                        pointSpan.style.marginLeft = "5px";
+                        pointSpan.textContent = `(${Math.floor(points).toLocaleString()}pt)`;
+                        countSpan.appendChild(pointSpan);
+                    }
+
                     giftDiv.appendChild(giftImg);
                     giftDiv.appendChild(giftNameSpan);
                     giftDiv.appendChild(countSpan);
@@ -1738,13 +1810,6 @@
                     itemDiv.appendChild(timeDiv);
                     itemDiv.appendChild(giftDiv);
                     listDiv.appendChild(itemDiv);
-
-                    // ポイント計算
-                    const giftInfo = giftMasterData[item.giftId];
-                    if (giftInfo) {
-                        const points = calculateGiftPoints(item.giftId, item.count, giftInfo.free, giftInfo.point);
-                        totalPoints += points;
-                    }
                 });
 
                 // 合計ポイント表示
@@ -2220,8 +2285,8 @@
                     // 無料ギフト（その他）: 基本ポイント × 個数 × 倍率
                     totalPoints = basePoint * count * quantityMultiplier;
 
-                    // ギフトID 800093 は追加で2.5倍
-                    if (giftId === 800093) {
+                    // ギフトID 1601 は追加で2.5倍
+                    if (giftId === 1601) {
                         totalPoints *= 2.5;
                     }
                 }
@@ -2781,6 +2846,66 @@
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('mouseup', onMouseUp);
             });
+        });
+
+
+        // 設定パネルのドラッグ機能
+        const settingsHeader = document.getElementById("settingsHeader");
+        let isDraggingSettings = false;
+        let settingsStartX, settingsStartY;
+        let settingsPanelWidth, settingsPanelHeight;
+        let isTransformRemoved = false;
+
+        settingsHeader.addEventListener("mousedown", (e) => {
+            isDraggingSettings = true;
+
+            // 現在のパネル位置を取得
+            const rect = settingsPanel.getBoundingClientRect();
+
+            // マウスのパネル内でのオフセットを計算
+            settingsStartX = e.clientX - rect.left;
+            settingsStartY = e.clientY - rect.top;
+
+            // パネルのサイズを取得
+            settingsPanelWidth = rect.width;
+            settingsPanelHeight = rect.height;
+
+            document.body.style.cursor = "move";
+            document.body.style.userSelect = "none";
+            e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isDraggingSettings) return;
+
+            // マウス位置からオフセットを引いて、パネルの左上位置を計算
+            let newLeft = e.clientX - settingsStartX;
+            let newTop = e.clientY - settingsStartY;
+
+            // 画面外に出ないように制限
+            const maxLeft = window.innerWidth - settingsPanelWidth;
+            const maxTop = window.innerHeight - settingsPanelHeight;
+
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+
+            // 位置を設定
+            settingsPanel.style.left = `${newLeft}px`;
+            settingsPanel.style.top = `${newTop}px`;
+        });
+
+        document.addEventListener("mouseup", () => {
+            if (isDraggingSettings) {
+                isDraggingSettings = false;
+                document.body.style.cursor = "";
+                document.body.style.userSelect = "";
+            }
+        });
+        // ウィンドウリサイズ時に設定パネルの位置を調整
+        window.addEventListener("resize", () => {
+            if (settingsPanel.style.display === "block") {
+                adjustSettingsPanelPosition();
+            }
         });
     </script>
 </body>
