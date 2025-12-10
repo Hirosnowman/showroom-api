@@ -530,8 +530,56 @@
             border-radius: 8px;
             border: 3px solid #ccc;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.3s ease-out;
             min-width: 100px;
+        }
+
+        /* アバター画像のジャンプアニメーション */
+        @keyframes avatarJump {
+            0% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-15px);
+            }
+
+            60% {
+                transform: translateY(-5px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .high-value-gift-item img.avatar.jump {
+            animation: avatarJump 0.5s ease-in-out;
+        }
+
+        /* 放物線アニメーション（順位変動時） */
+        @keyframes parabolicMove {
+            0% {
+                transform: translate(var(--move-distance), 0);
+            }
+
+            50% {
+                transform: translate(calc(var(--move-distance) / 2), -40px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .high-value-gift-item.moving {
+            animation: parabolicMove 0.8s cubic-bezier(0.45, 0, 0.55, 1);
+            z-index: 100;
+            position: relative;
+        }
+
+        /* 他のアイテムの滑らかな移動（JSで制御するためCSS transitionは削除またはJSで上書き） */
+        .high-value-gift-item {
+            /* transitionはJSで動的に適用します */
         }
 
         /* 上段：アバターとギフトアイコン */
@@ -773,6 +821,98 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.3);
             z-index: 1500;
+        }
+
+        /* t18メッセージモーダル */
+        .t18-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #FF6C1A;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        .t18-modal.show {
+            display: flex;
+        }
+
+        .t18-modal-header {
+            background: linear-gradient(135deg, #FF6C1A 0%, #FF8C42 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            cursor: move;
+            user-select: none;
+        }
+
+        .t18-modal-close {
+            cursor: pointer;
+            font-size: 1.5em;
+            color: white;
+            font-weight: bold;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .t18-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .t18-modal-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .t18-message-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            background: rgba(255, 108, 26, 0.1);
+            font-weight: bold;
+        }
+
+        .t18-message-time {
+            font-size: 0.8em;
+            color: #999;
+            margin-bottom: 5px;
+            font-weight: normal;
+        }
+
+        .t18-message-text {
+            color: #FF6C1A;
+        }
+
+        .t18-no-messages {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -1081,6 +1221,19 @@
         </div>
     </div>
 
+    <!-- t18メッセージモーダル -->
+    <div id="t18Modal" class="t18-modal">
+        <div class="t18-modal-header">
+            <span>システムコメント💬</span>
+            <button class="t18-modal-close" onclick="document.getElementById('t18Modal').classList.remove('show');">
+                ×
+            </button>
+        </div>
+        <div class="t18-modal-content" id="t18ModalContent">
+            <div class="t18-no-messages">まだファンレベルアップメッセージがありません</div>
+        </div>
+    </div>
+
     <script>
         let broadcastKey = null;
         let socket = null;
@@ -1094,6 +1247,9 @@
         // アラーム用
         let alarmTime = null; // "HH:MM" string
         let alarmTriggered = false;
+
+        // t18メッセージ履歴 [{ message, color, time }]
+        const t18MessageHistory = [];
 
         // 時計更新
         setInterval(() => {
@@ -1502,6 +1658,7 @@
                     let restoredCount = 0;
 
                     comments.forEach(comment => {
+                        // 抜けチェックの再表示部分では user_id === 0 を除外
                         if (comment.user_id === 0) return;
 
                         const isDuplicate = Array.from(receivedComments).some(hash => {
@@ -1572,25 +1729,55 @@
 
         // コメント表示
         function showComment(c) {
-            // "m" プロパティがある場合は特別表示（オレンジ色、アバターなし）
+            // "m" プロパティがある場合は特別表示（システムメッセージ、ファンレベルアップなど）
             if (c.m) {
                 const div = document.createElement("div");
                 div.style.display = "flex";
                 div.style.alignItems = "flex-start";
                 div.style.marginBottom = "5px";
-                div.style.background = "#fff3e0"; // オレンジ系の背景
                 div.style.padding = "5px 10px";
                 div.style.borderRadius = "5px";
                 div.style.boxShadow = "1px 1px 3px #aaa";
-                div.style.borderLeft = "4px solid #ff9800"; // オレンジの左ボーダー
+                div.style.cursor = "pointer"; // クリック可能にする
+
+                // カラーコード(c)がある場合はそれを使用、なければデフォルトのオレンジ
+                const colorCode = c.c ? `#${c.c}` : "#ff9800";
+                const bgColor = c.c ? `#${c.c}20` : "#fff3e0"; // 20は透明度(約12%)
+
+                div.style.background = bgColor;
+                div.style.borderLeft = `4px solid ${colorCode}`;
 
                 const textP = document.createElement("p");
                 textP.style.margin = "0";
-                textP.style.color = "#ff9800"; // オレンジ色のテキスト
+                textP.style.color = colorCode;
                 textP.style.fontWeight = "bold";
                 textP.textContent = c.m;
 
                 div.appendChild(textP);
+
+                // t18メッセージの場合は履歴に保存してクリックイベントを追加
+                if (c.t === 18) {
+                    t18MessageHistory.unshift({
+                        message: c.m,
+                        color: colorCode,
+                        time: c.created_at ? new Date(c.created_at * 1000) : new Date()
+                    });
+                    // 最大100件まで保持
+                    if (t18MessageHistory.length > 100) {
+                        t18MessageHistory.pop();
+                    }
+
+                    // クリックイベント
+                    div.onclick = () => {
+                        showT18Modal();
+                    };
+
+                    // モーダルが開いている場合はリアルタイム更新
+                    const modal = document.getElementById("t18Modal");
+                    if (modal.classList.contains("show")) {
+                        updateT18ModalContent();
+                    }
+                }
 
                 // 重複チェック用にコメントを記録
                 const commentHash = `${c.u}_${c.m}_${c.created_at || Date.now()}`;
@@ -1692,6 +1879,104 @@
 
             document.getElementById("comment").prepend(div);
         }
+
+        // t18メッセージモーダルのコンテンツを更新
+        function updateT18ModalContent() {
+            const contentDiv = document.getElementById("t18ModalContent");
+            contentDiv.innerHTML = "";
+
+            if (t18MessageHistory.length === 0) {
+                contentDiv.innerHTML = "<div class='t18-no-messages'>まだシステムメッセージがありません</div>";
+            } else {
+                t18MessageHistory.forEach(item => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "t18-message-item";
+                    itemDiv.style.borderLeftColor = item.color;
+
+                    const timeDiv = document.createElement("div");
+                    timeDiv.className = "t18-message-time";
+                    timeDiv.textContent = item.time.toLocaleString();
+
+                    const textDiv = document.createElement("div");
+                    textDiv.className = "t18-message-text";
+                    textDiv.style.color = item.color;
+                    textDiv.textContent = item.message;
+
+                    itemDiv.appendChild(timeDiv);
+                    itemDiv.appendChild(textDiv);
+                    contentDiv.appendChild(itemDiv);
+                });
+            }
+        }
+
+        // t18メッセージモーダルを表示
+        function showT18Modal() {
+            const modal = document.getElementById("t18Modal");
+
+            // 位置を初期化(中央)
+            modal.style.left = "50%";
+            modal.style.top = "50%";
+            modal.style.transform = "translate(-50%, -50%)";
+
+            // ドラッグ位置もリセット
+            if (typeof resetT18ModalPosition === 'function') {
+                resetT18ModalPosition();
+            }
+
+            // コンテンツを更新
+            updateT18ModalContent();
+
+            modal.classList.add("show");
+            // overlayは表示しない
+        }
+
+        // t18モーダルのドラッグ機能
+        let resetT18ModalPosition; // 位置リセット関数を外部から呼び出せるようにする
+        (function () {
+            const modal = document.getElementById("t18Modal");
+            const header = modal.querySelector(".t18-modal-header");
+            let isDragging = false;
+            let currentX = 0;
+            let currentY = 0;
+            let initialX = 0;
+            let initialY = 0;
+
+            // 位置をリセットする関数を公開
+            resetT18ModalPosition = function () {
+                currentX = 0;
+                currentY = 0;
+                initialX = 0;
+                initialY = 0;
+            };
+
+            header.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", drag);
+            document.addEventListener("mouseup", dragEnd);
+
+            function dragStart(e) {
+                // 閉じるボタンをクリックした場合はドラッグしない
+                if (e.target.classList.contains("t18-modal-close")) {
+                    return;
+                }
+
+                isDragging = true;
+                initialX = e.clientX - currentX;
+                initialY = e.clientY - currentY;
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    modal.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+                }
+            }
+
+            function dragEnd(e) {
+                isDragging = false;
+            }
+        })();
 
         // コメント履歴を表示
         function showCommentHistory(userId, userName, avatarId) {
@@ -2391,13 +2676,23 @@
                 const countSpan = itemDiv.querySelector(".count");
                 countSpan.textContent = `${Math.floor(totalPoints).toLocaleString()}pt`;
 
-                // アニメーション再開
-                itemDiv.classList.remove("high-value-gift-item");
-                void itemDiv.offsetWidth;
-                itemDiv.classList.add("high-value-gift-item");
+                // アバター画像にジャンプアニメーションを適用
+                const avatarImg = itemDiv.querySelector("img.avatar");
+                if (avatarImg) {
+                    // 既存のアニメーションクラスを削除
+                    avatarImg.classList.remove("jump");
+                    // リフローを強制してアニメーションをリセット
+                    void avatarImg.offsetWidth;
+                    // ジャンプアニメーションを開始
+                    avatarImg.classList.add("jump");
 
-                // 一番上に移動（最新のアクションがあった人を右端へ）
-                container.appendChild(itemDiv);
+                    // アニメーション終了後にクラスを削除（再利用可能にする）
+                    setTimeout(() => {
+                        avatarImg.classList.remove("jump");
+                    }, 500); // アニメーション時間と同じ
+                }
+
+                // 位置はsortHighValueItems()で決定されるため、ここでは移動しない
 
             } else {
                 // 新規作成
@@ -2435,6 +2730,93 @@
 
                 container.appendChild(itemDiv);
             }
+
+            // ポイント順にソート（アニメーション付き）
+            sortHighValueItems();
+        }
+
+        // ポイント順にソートしてアニメーション
+        function sortHighValueItems() {
+            const container = document.getElementById("highValueGiftContainer");
+            if (!container) return;
+
+            const items = Array.from(container.children);
+            if (items.length <= 1) return; // 1つ以下ならソート不要
+
+            // 現在の位置（インデックス）と画面上の位置を記録
+            const oldPositions = new Map();
+            const oldScreenPositions = new Map();
+            items.forEach((item, index) => {
+                const userId = item.id.replace('high-value-', '');
+                oldPositions.set(userId, index);
+                // 画面上の実際の位置を記録
+                const rect = item.getBoundingClientRect();
+                oldScreenPositions.set(userId, { left: rect.left, top: rect.top });
+            });
+
+            // ポイント順にソート（降順）
+            items.sort((a, b) => {
+                const userIdA = a.id.replace('high-value-', '');
+                const userIdB = b.id.replace('high-value-', '');
+                const pointsA = userHighValueData[userIdA]?.totalPoints || 0;
+                const pointsB = userHighValueData[userIdB]?.totalPoints || 0;
+                return pointsB - pointsA; // 降順
+            });
+
+            // DOM再配置（ソート順に）
+            items.forEach(item => container.appendChild(item));
+
+            // リフローを強制
+            void container.offsetHeight;
+
+            // 位置変更を検出してアニメーション
+            items.forEach((item, newIndex) => {
+                const userId = item.id.replace('high-value-', '');
+                const oldIndex = oldPositions.get(userId);
+
+                if (oldIndex !== undefined && oldIndex !== newIndex) {
+                    const oldPos = oldScreenPositions.get(userId);
+                    const newRect = item.getBoundingClientRect();
+
+                    // 実際の画面上の移動距離（Old - New）
+                    // Jumper (Left/Up): Positive
+                    // Overtaken (Right/Down): Negative
+                    const moveDistance = oldPos.left - newRect.left;
+
+                    if (newIndex < oldIndex) {
+                        // Jumper (順位上昇) -> 放物線アニメーション
+                        // CSS変数に移動距離を設定
+                        item.style.setProperty('--move-distance', `${moveDistance}px`);
+                        item.classList.remove('moving');
+                        void item.offsetWidth; // リフロー
+                        item.classList.add('moving');
+
+                        // アニメーション終了後にクラスとスタイルを削除
+                        setTimeout(() => {
+                            item.classList.remove('moving');
+                            item.style.removeProperty('--move-distance');
+                        }, 800);
+                    } else {
+                        // Overtaken (順位下降) -> スライドアニメーション (FLIP)
+                        // 1. トランジションなしで元の位置に移動
+                        item.style.transition = 'none';
+                        item.style.transform = `translateX(${moveDistance}px)`;
+
+                        // 2. リフロー
+                        void item.offsetWidth;
+
+                        // 3. トランジション有効化して新しい位置（0）へ移動
+                        item.style.transition = 'transform 0.8s cubic-bezier(0.45, 0, 0.55, 1)';
+                        item.style.transform = 'translateX(0)';
+
+                        // 4. クリーンアップ
+                        setTimeout(() => {
+                            item.style.transition = '';
+                            item.style.transform = '';
+                        }, 800);
+                    }
+                }
+            });
         }
 
         function showHighValuePopup(e, userId, userName, avatarId, userData) {
@@ -2636,6 +3018,7 @@
                     const obj = JSON.parse(data.replace(`MSG\t${broadcastKey}`, ""));
                     if (obj.cm) showComment(obj);
                     else if (obj.g) showGift(obj);
+                    else if (obj.t === 18 && obj.m) showComment(obj); // ファンレベルアップメッセージ
                     // current_live_started_atが設定されていない場合のみ、WebSocketからのstarted_atを使用
                     if (!startedAt && obj.started_at) {
                         startedAt = obj.started_at * 1000;
@@ -2693,7 +3076,7 @@
                         const comments = json.comment_log.slice().reverse();
 
                         comments.forEach(comment => {
-                            // SHOWROOM運営のシステムメッセージ(user_id: 0)は復元しない
+                            // 抜けチェック再表示部分では user_id === 0 を除外
                             if (comment.user_id === 0) return;
 
                             // 重複チェック: 同ユーザーID、同コメント、±5秒以内であれば重複とみなす
